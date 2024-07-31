@@ -8,6 +8,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { ModelService } from './model/model.service';
 import { ModelController } from './model/model.controller';
+import { AdminController } from './admin/admin.controller';
 
 @Module({
   imports: [
@@ -26,17 +27,17 @@ import { ModelController } from './model/model.controller';
   ],
   
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: JwtAuthGuard,
+    // },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: RolesGuard,
+    // },
     ModelService,
   ],
   
-  controllers: [ModelController],
+  controllers: [ModelController, AdminController],
 })
 export class AppModule {}

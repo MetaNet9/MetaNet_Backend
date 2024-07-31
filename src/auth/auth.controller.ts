@@ -1,7 +1,6 @@
-// auth/auth.controller.ts
-import { Controller, Post, UseGuards, Request, Body, Get } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Body, Get, Res, HttpException, HttpStatus } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -10,21 +9,36 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  async login(@Body() body: { email: string, password: string }, @Res() res: Response) {
+    try {
+      const user = await this.authService.validateUser(body.email, body.password);
+      if (!user) {
+        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      }
+      const token = await this.authService.login(user);
+      res.cookie('access_token', token.access_token, { httpOnly: true }); // Set the cookie
+      return res.send({ success: true });
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('profile')
+  @Get('profile')
   getProfile(@Request() req) {
     return req.user;
   }
 
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  async register(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
+    try {
+      const token = await this.authService.register(createUserDto);
+      res.cookie('access_token', token.access_token, { httpOnly: true }); // Set the cookie
+      return res.send({ success: true });
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Get('google')
@@ -35,7 +49,13 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  async googleAuthRedirect(@Request() req) {
-    return this.authService.googleLogin(req.user);
+  async googleAuthRedirect(@Request() req, @Res() res: Response) {
+    try {
+      const token = await this.authService.googleLogin(req.user);
+      res.cookie('access_token', token.access_token, { httpOnly: true }); // Set the cookie
+      return res.send({ success: true });
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

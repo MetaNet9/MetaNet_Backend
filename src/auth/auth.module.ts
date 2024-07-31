@@ -17,6 +17,7 @@ import { UsersModule } from '../users/users.module';
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '60m' },
     }),
+    
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
   controllers: [AuthController],
