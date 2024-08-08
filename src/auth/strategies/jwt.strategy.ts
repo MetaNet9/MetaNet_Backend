@@ -10,8 +10,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
-          // Extract JWT from cookies
-          console.log(request);
           return request.cookies?.access_token;
         }
       ]),
@@ -26,6 +24,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       return null;
     }
-    return { userId: payload.sub, email: payload.email };
+    return { userId: payload.sub, email: payload.email, roles: user.roles };
   }
 }
