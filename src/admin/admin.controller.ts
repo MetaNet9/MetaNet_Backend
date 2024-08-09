@@ -5,6 +5,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/user.entity';
 
+
 // example.controller.ts
 @Controller()
 export class AdminController {
@@ -28,8 +29,8 @@ export class AdminController {
   }
 
   @Get('user')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   getUserContent() {
     return 'This is user content';
   }

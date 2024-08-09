@@ -9,6 +9,11 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { ModelService } from './model/model.service';
 import { ModelController } from './model/model.controller';
 import { AdminController } from './admin/admin.controller';
+import { ModeratorManageController } from './moderator-manage/moderator-manage.controller';
+import { ModeratorManageService } from './moderator-manage/moderator-manage.service';
+import { ModeratorManageModule } from './moderator-manage/moderator-manage.module';
+import { UsersService } from './users/users.service';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -23,7 +28,8 @@ import { AdminController } from './admin/admin.controller';
       synchronize: true,
     }),
     AuthModule,
-    ConfigModule.forRoot()
+    ConfigModule.forRoot(),
+    ModeratorManageModule
   ],
   
   providers: [
@@ -35,7 +41,7 @@ import { AdminController } from './admin/admin.controller';
     //   provide: APP_GUARD,
     //   useClass: RolesGuard,
     // },
-    ModelService,
+    ModelService
   ],
   
   controllers: [ModelController, AdminController],
