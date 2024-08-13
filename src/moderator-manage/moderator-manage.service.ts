@@ -36,4 +36,13 @@ export class ModeratorManageService {
     return true;
   }
 
+  async delete(email: string) {
+    const existingUser = await this.usersService.findOneByEmail(email);
+    if (!existingUser) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    await this.usersService.delete(existingUser.id.toString());
+    return true;
+  }
 }
