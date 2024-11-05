@@ -14,6 +14,8 @@ import { ModeratorManageService } from './moderator-manage/moderator-manage.serv
 import { ModeratorManageModule } from './moderator-manage/moderator-manage.module';
 import { UsersService } from './users/users.service';
 import { UsersModule } from './users/users.module';
+import { VebxrmodelModule } from './vebxrmodel/vebxrmodel.module';
+import { Vebxrmodel } from './vebxrmodel/entities/vebxrmodel.entity';
 
 @Module({
   imports: [
@@ -24,12 +26,13 @@ import { UsersModule } from './users/users.module';
       username: 'postgres',
       password: 'password',
       database: 'metanet',
-      entities: [User],
+      entities: [User, Vebxrmodel],
       synchronize: true,
     }),
     AuthModule,
     ConfigModule.forRoot(),
-    ModeratorManageModule
+    ModeratorManageModule,
+    VebxrmodelModule
   ],
   
   providers: [
