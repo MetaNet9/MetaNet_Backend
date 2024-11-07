@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Double } from 'typeorm';
+import { Category } from 'src/category/category.entity';
 
 @Entity()
 export class Vebxrmodel {
@@ -14,8 +15,9 @@ export class Vebxrmodel {
   @Column()
   modelUrl: string;
 
-  @Column()
-  category: string;
+  @ManyToOne(() => Category, (category) => category.models)
+  @JoinColumn({ name: 'categoryId' }) // Optionally set a custom column name
+  category: Category; // Category relationship
 
   @Column()
   tags: string;
@@ -62,4 +64,17 @@ export class Vebxrmodel {
   @Column()
   modelOwner: number;
 
+  @Column({ type: 'float', default: 0 })
+  price: number;
+
+  // total downloads
+  @Column({ default: 0 })
+  downloads: number;
+
+  // total likes
+  @Column({ default: 0 })
+  likes: number;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
 }

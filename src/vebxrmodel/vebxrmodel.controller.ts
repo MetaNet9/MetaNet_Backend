@@ -11,7 +11,6 @@ export class VebxrmodelController {
   @Post()
   @UseGuards(JwtAuthGuard)
   create(@Body() createVebxrmodelDto: CreateVebxrmodelDto, @Req() req) {
-    console.log(req.user);
     return this.vebxrmodelService.create(createVebxrmodelDto, req.user.userId);
   }
 
@@ -25,10 +24,10 @@ export class VebxrmodelController {
     return this.vebxrmodelService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVebxrmodelDto: UpdateVebxrmodelDto) {
-    return this.vebxrmodelService.update(+id, updateVebxrmodelDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateVebxrmodelDto: UpdateVebxrmodelDto) {
+  //   return this.vebxrmodelService.update(+id, updateVebxrmodelDto);
+  // }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

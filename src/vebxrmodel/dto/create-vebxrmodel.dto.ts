@@ -1,4 +1,6 @@
-import { IsString, IsBoolean, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, IsNumber, isNumber } from 'class-validator';
+import { Double } from 'typeorm';
+import { isFloat32Array } from 'util/types';
 
 export class CreateVebxrmodelDto {
   @IsString()
@@ -10,8 +12,8 @@ export class CreateVebxrmodelDto {
   @IsString()
   modelUrl: string;
 
-  @IsString()
-  category: string;
+  @IsNumber()
+  category: number;
 
   @IsString()
   tags: string;
@@ -61,4 +63,10 @@ export class CreateVebxrmodelDto {
 
   @IsBoolean()
   morphGeometry: boolean;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  price?: number;
 }
+
+

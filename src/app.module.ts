@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
@@ -15,6 +15,9 @@ import { UsersModule } from './users/users.module';
 import { VebxrmodelModule } from './vebxrmodel/vebxrmodel.module';
 import { Vebxrmodel } from './vebxrmodel/entities/vebxrmodel.entity';
 import { FileUploadModule } from './file-upload/file-upload.module';
+import { CategoryModule } from './category/category.module';
+import { CategoryService } from './category/category.service';
+import { Category } from './category/category.entity';
 
 @Module({
   imports: [
@@ -25,14 +28,15 @@ import { FileUploadModule } from './file-upload/file-upload.module';
       username: 'postgres',
       password: 'password',
       database: 'metanet',
-      entities: [User, Vebxrmodel],
+      entities: [User, Vebxrmodel, Category],
       synchronize: true,
     }),
     AuthModule,
     ConfigModule.forRoot(),
     ModeratorManageModule,
     VebxrmodelModule,
-    FileUploadModule
+    FileUploadModule,
+    CategoryModule
   ],
   
   providers: [
@@ -48,4 +52,10 @@ import { FileUploadModule } from './file-upload/file-upload.module';
   
   controllers: [ AdminController],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit{
+  constructor(private categoryService: CategoryService) {}
+
+  async onModuleInit() {
+    await this.categoryService.seedCategories();
+  }
+}
