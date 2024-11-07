@@ -8,6 +8,9 @@ export class CreateVebxrmodelDto {
   description: string;
 
   @IsString()
+  modelUrl: string;
+
+  @IsString()
   category: string;
 
   @IsString()

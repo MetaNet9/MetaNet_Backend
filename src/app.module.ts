@@ -6,8 +6,6 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { ModelService } from './model/model.service';
-import { ModelController } from './model/model.controller';
 import { AdminController } from './admin/admin.controller';
 import { ModeratorManageController } from './moderator-manage/moderator-manage.controller';
 import { ModeratorManageService } from './moderator-manage/moderator-manage.service';
@@ -16,6 +14,7 @@ import { UsersService } from './users/users.service';
 import { UsersModule } from './users/users.module';
 import { VebxrmodelModule } from './vebxrmodel/vebxrmodel.module';
 import { Vebxrmodel } from './vebxrmodel/entities/vebxrmodel.entity';
+import { FileUploadModule } from './file-upload/file-upload.module';
 
 @Module({
   imports: [
@@ -32,7 +31,8 @@ import { Vebxrmodel } from './vebxrmodel/entities/vebxrmodel.entity';
     AuthModule,
     ConfigModule.forRoot(),
     ModeratorManageModule,
-    VebxrmodelModule
+    VebxrmodelModule,
+    FileUploadModule
   ],
   
   providers: [
@@ -44,9 +44,8 @@ import { Vebxrmodel } from './vebxrmodel/entities/vebxrmodel.entity';
     //   provide: APP_GUARD,
     //   useClass: RolesGuard,
     // },
-    ModelService
   ],
   
-  controllers: [ModelController, AdminController],
+  controllers: [ AdminController],
 })
 export class AppModule {}

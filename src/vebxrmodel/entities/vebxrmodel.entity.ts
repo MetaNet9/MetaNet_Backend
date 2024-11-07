@@ -12,6 +12,9 @@ export class Vebxrmodel {
   description: string;
 
   @Column()
+  modelUrl: string;
+
+  @Column()
   category: string;
 
   @Column()
