@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseGuards, Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vebxrmodel } from './entities/vebxrmodel.entity';
 import { CreateVebxrmodelDto } from './dto/create-vebxrmodel.dto';
 import { UpdateVebxrmodelDto } from './dto/update-vebxrmodel.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Injectable()
 export class VebxrmodelService {
@@ -12,8 +13,11 @@ export class VebxrmodelService {
     private readonly vebxrmodelRepository: Repository<Vebxrmodel>,
   ) {}
 
-  create(createVebxrModelDto: CreateVebxrmodelDto): Promise<Vebxrmodel> {
+  @UseGuards(JwtAuthGuard)
+  create(createVebxrModelDto: CreateVebxrmodelDto, userId: number): Promise<Vebxrmodel> {
     const vebxrModel = this.vebxrmodelRepository.create(createVebxrModelDto);
+    // get the current user and set it as the model owner
+    vebxrModel.modelOwner = userId;
     return this.vebxrmodelRepository.save(vebxrModel);
   }
 

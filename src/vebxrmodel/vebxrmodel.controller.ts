@@ -1,15 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
 import { VebxrmodelService } from './vebxrmodel.service';
 import { CreateVebxrmodelDto } from './dto/create-vebxrmodel.dto';
 import { UpdateVebxrmodelDto } from './dto/update-vebxrmodel.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('vebxrmodel')
 export class VebxrmodelController {
   constructor(private readonly vebxrmodelService: VebxrmodelService) {}
 
   @Post()
-  create(@Body() createVebxrmodelDto: CreateVebxrmodelDto) {
-    return this.vebxrmodelService.create(createVebxrmodelDto);
+  @UseGuards(JwtAuthGuard)
+  create(@Body() createVebxrmodelDto: CreateVebxrmodelDto, @Req() req) {
+    console.log(req.user);
+    return this.vebxrmodelService.create(createVebxrmodelDto, req.user.userId);
   }
 
   @Get()

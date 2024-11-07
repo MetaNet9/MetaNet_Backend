@@ -58,4 +58,8 @@ export class Vebxrmodel {
 
   @Column({ default: false })
   morphGeometry: boolean;
+
+  @Column()
+  modelOwner: number;
+
 }
