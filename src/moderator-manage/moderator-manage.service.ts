@@ -45,4 +45,5 @@ export class ModeratorManageService {
     await this.usersService.delete(existingUser.id.toString());
     return true;
   }
+
 }

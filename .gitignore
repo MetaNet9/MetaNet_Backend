@@ -52,3 +52,4 @@ build/config\.gypi
 pnpm-lock.yaml
 
 .env
+/uploads
