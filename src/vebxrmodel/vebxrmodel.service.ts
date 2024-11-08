@@ -51,4 +51,60 @@ export class VebxrmodelService {
   async remove(id: number): Promise<void> {
     await this.vebxrmodelRepository.delete(id);
   }
+
+  async findWithFilters(
+    filters: {
+      category?: number;
+      minPrice?: number;
+      maxPrice?: number;
+      format?: string;
+      license?: string;
+      pbr?: boolean;
+      animated?: boolean;
+      rigged?: boolean;
+    },
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{ data: Vebxrmodel[]; total: number }> {
+    const query = this.vebxrmodelRepository.createQueryBuilder('model');
+  
+    console.log('filters', filters);
+  
+    // Apply filters with type checking
+    if (filters.category !== undefined && !isNaN(filters.category)) {
+      query.andWhere('model.category = :category', { category: filters.category });
+    }
+    if (filters.minPrice !== undefined && !isNaN(filters.minPrice)) {
+      query.andWhere('model.price >= :minPrice', { minPrice: filters.minPrice });
+    }
+    if (filters.maxPrice !== undefined && !isNaN(filters.maxPrice)) {
+      query.andWhere('model.price <= :maxPrice', { maxPrice: filters.maxPrice });
+    }
+    if (filters.format) {
+      query.andWhere('model.format = :format', { format: filters.format });
+    }
+    if (filters.license) {
+      query.andWhere('model.license = :license', { license: filters.license });
+    }
+    // if (filters.pbr !== undefined) {
+    //   query.andWhere('model.pbr = :pbr', { pbr: filters.pbr });
+    // }
+    // if (filters.animated !== undefined) {
+    //   query.andWhere('model.animation = :animated', { animated: filters.animated });
+    // }
+    // if (filters.rigged !== undefined) {
+    //   query.andWhere('model.riggedGeometry = :rigged', { rigged: filters.rigged });
+    // }
+  
+    console.log('Query:', query.getQueryAndParameters());
+    // Apply pagination and retrieve data and total count
+    const [data, total] = await query
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+  
+    return { data, total };
+  }
+  
+
 }
