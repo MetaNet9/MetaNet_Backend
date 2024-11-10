@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
-import { User } from 'src/users/user.entity'; // Adjust path
-import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity'; // Adjust path
+import { User } from 'src/users/user.entity'; // Adjust path if necessary
+import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity'; // Adjust path if necessary
 
 @Injectable()
 export class CartService {
@@ -18,24 +18,29 @@ export class CartService {
 
   // Add a model to the cart for a specific user
   async addToCart(userId: number, modelId: number): Promise<Cart> {
-
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     const model = await this.vebxrmodelRepository.findOne({ where: { id: modelId } });
     if (!model) {
-      throw new Error('Model not found');
+      throw new NotFoundException('Model not found');
     }
 
-    if (!user || !model) {
-      throw new Error('User or model not found');
+    // Check if the model is already in the user's cart
+    const existingCartItem = await this.cartRepository.findOne({
+      where: { user, model },
+    });
+
+    if (existingCartItem) {
+      throw new BadRequestException('This item is already in your cart');
     }
 
+    // Create and save the new cart item
     const cartItem = this.cartRepository.create({
       user,
-      model
+      model,
     });
 
     return this.cartRepository.save(cartItem);
@@ -56,7 +61,7 @@ export class CartService {
     });
 
     if (!cartItem) {
-      throw new Error('Cart item not found');
+      throw new NotFoundException('Cart item not found');
     }
 
     await this.cartRepository.remove(cartItem);

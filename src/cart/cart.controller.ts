@@ -14,6 +14,12 @@ export class CartController {
     return this.cartService.addToCart(req.user.userId, createCartDto.modelId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Delete(':modelId')
+  removeFromCart(@Param('modelId')modelId:number,@Req() req){
+    return this.cartService.removeFromCart(req.user.userId,modelId);
+  }
+
   // @Get()
   // findAll() {
   //   return this.cartService.findAll();
