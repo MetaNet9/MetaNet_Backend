@@ -20,6 +20,15 @@ export class CartController {
     return this.cartService.removeFromCart(req.user.userId,modelId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getCart(@Req() req) {
+    const userId = req.user.userId;
+
+    return this.cartService.getCart(userId);
+  }
+
+  
   // @Get()
   // findAll() {
   //   return this.cartService.findAll();
