@@ -18,6 +18,8 @@ import { FileUploadModule } from './file-upload/file-upload.module';
 import { CategoryModule } from './category/category.module';
 import { CategoryService } from './category/category.service';
 import { Category } from './category/category.entity';
+import { CartModule } from './cart/cart.module';
+import { Cart } from './cart/entities/cart.entity';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { Category } from './category/category.entity';
       username: 'postgres',
       password: 'password',
       database: 'metanet',
-      entities: [User, Vebxrmodel, Category],
+      entities: [User, Vebxrmodel, Category, Cart],
       synchronize: true,
     }),
     AuthModule,
@@ -36,7 +38,8 @@ import { Category } from './category/category.entity';
     ModeratorManageModule,
     VebxrmodelModule,
     FileUploadModule,
-    CategoryModule
+    CategoryModule,
+    CartModule
   ],
   
   providers: [
