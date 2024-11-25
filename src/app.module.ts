@@ -20,6 +20,9 @@ import { CategoryService } from './category/category.service';
 import { Category } from './category/category.entity';
 import { CartModule } from './cart/cart.module';
 import { Cart } from './cart/entities/cart.entity';
+import { PaymentModule } from './payment/payment.module';
+import { StripeModule } from './stripe/stripe.module';
+import { Payment } from './payment/entities/payment.entity';
 
 @Module({
   imports: [
@@ -30,7 +33,7 @@ import { Cart } from './cart/entities/cart.entity';
       username: 'postgres',
       password: 'password',
       database: 'metanet',
-      entities: [User, Vebxrmodel, Category, Cart],
+      entities: [User, Vebxrmodel, Category, Cart, Payment],
       synchronize: true,
     }),
     AuthModule,
@@ -39,7 +42,9 @@ import { Cart } from './cart/entities/cart.entity';
     VebxrmodelModule,
     FileUploadModule,
     CategoryModule,
-    CartModule
+    CartModule,
+    PaymentModule,
+    StripeModule
   ],
   
   providers: [
