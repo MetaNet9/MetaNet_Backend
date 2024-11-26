@@ -32,16 +32,16 @@ export class PaymentService {
     }
 
     // Create a PaymentIntent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmount,
-      currency: 'usd',
-      payment_method: paymentMethodId,
-      confirm: true,
-    });
+    // const paymentIntent = await stripe.paymentIntents.create({
+    //   amount: totalAmount,
+    //   currency: 'usd',
+    //   payment_method: paymentMethodId,
+    //   confirm: true,
+    // });
 
-    if (paymentIntent.status !== 'succeeded') {
-      throw new Error('Payment failed.');
-    }
+    // if (paymentIntent.status !== 'succeeded') {
+    //   throw new Error('Payment failed.');
+    // }
 
     // Record each purchase
     for (const modelId of modelIds) {
