@@ -32,16 +32,17 @@ export class PaymentService {
     }
 
     // Create a PaymentIntent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmount,
-      currency: 'usd',
-      payment_method: paymentMethodId,
-      confirm: true,
-    });
+    // const paymentIntent = await stripe.paymentIntents.create({
+    //   amount: totalAmount,
+    //   currency: 'usd',
+    //   payment_method: paymentMethodId,
+    //   confirm: true,
+    //   return_url: "https://localhost/payment-complete"
+    // });
 
-    if (paymentIntent.status !== 'succeeded') {
-      throw new Error('Payment failed.');
-    }
+    // if (paymentIntent.status !== 'succeeded') {
+    //   throw new Error('Payment failed.');
+    // }
 
     // Record each purchase
     for (const modelId of modelIds) {
@@ -73,6 +74,12 @@ export class PaymentService {
     purchase.reviewMessage = reviewMessage;
     purchase.reviewStars = reviewStars;
 
-    return this.paymentRepository.save(purchase);
+    try {
+      await this.paymentRepository.save(purchase);
+      return { message: 'Review saved successfully' };
+    } catch (error) {
+      console.error('Error saving Review:', error);
+      return { message: 'Failed to save Review' };
+    }
   }
 }

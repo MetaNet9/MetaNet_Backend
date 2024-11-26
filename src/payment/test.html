@@ -60,30 +60,18 @@
   <button class="button" id="pay-button" disabled>Proceed to Payment</button>
 
   <script>
-    // Mock token - Replace with real JWT token from your app
-    const jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG5kb2VAMy5jb20iLCJzdWIiOjIsInJvbGVzIjpbInVzZXIiLCJhZG1pbiJdLCJpYXQiOjE3MzI1MjcxODYsImV4cCI6MTczMjUzMDc4Nn0.SbHImKFOMPwYmUnuPflj0wy91G6vh-tdpnMjI6GmYMM";
     const apiUrl = "http://localhost:3000";
 
     const cartItemsContainer = document.getElementById("cart-items");
     const messagesContainer = document.getElementById("messages");
     const payButton = document.getElementById("pay-button");
-    let cartItems = [];
 
-    // Fetch cart items
-    function fetchCartItems() {
-      fetch(`${apiUrl}/cart`, {
-        method: "GET",
-        headers: {
-            access_token: jwtToken
-        }
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          cartItems = data;
-          renderCartItems();
-        })
-        .catch((error) => showMessage("Error fetching cart items: " + error.message, "error"));
-    }
+    // Hardcoded cart items
+    const cartItems = [
+      { id: 1, model: { name: "Model A", price: 100 } },
+      { id: 2, model: { name: "Model B", price: 200 } },
+      { id: 3, model: { name: "Model C", price: 300 } },
+    ];
 
     // Render cart items
     function renderCartItems() {
@@ -135,14 +123,14 @@
       const paymentMethod = getSelectedPaymentMethod();
       payButton.disabled = true;
 
-      fetch(`${apiUrl}/payment`, {
+      fetch(`${apiUrl}/payment/buy`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${jwtToken}`,
           "Content-Type": "application/json",
+          "Cookie": "access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG5kb2VAMy5jb20iLCJzdWIiOjIsInJvbGVzIjpbInVzZXIiLCJhZG1pbiJdLCJpYXQiOjE3MzI1MjcxODYsImV4cCI6MTczMjUzMDc4Nn0.SbHImKFOMPwYmUnuPflj0wy91G6vh-tdpnMjI6GmYMM"
         },
         body: JSON.stringify({
-          items: selectedItems,
+          modelIds: selectedItems,
           paymentMethod: paymentMethod,
         }),
       })
@@ -150,7 +138,6 @@
         .then((data) => {
           if (data.status === "success") {
             showMessage("Payment successful: " + data.message, "success");
-            fetchCartItems(); // Refresh cart
           } else {
             showMessage("Payment failed: " + data.message, "error");
           }
@@ -164,8 +151,8 @@
     // Event listeners
     payButton.addEventListener("click", handlePayment);
 
-    // Initial load
-    fetchCartItems();
+    // Initial render
+    renderCartItems();
   </script>
 </body>
 </html>
