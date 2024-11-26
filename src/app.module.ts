@@ -20,6 +20,7 @@ import { CategoryService } from './category/category.service';
 import { Category } from './category/category.entity';
 import { CartModule } from './cart/cart.module';
 import { Cart } from './cart/entities/cart.entity';
+import { SellerModule } from './seller/seller.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { Cart } from './cart/entities/cart.entity';
     VebxrmodelModule,
     FileUploadModule,
     CategoryModule,
-    CartModule
+    CartModule,
+    SellerModule
   ],
   
   providers: [

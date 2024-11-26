@@ -2,8 +2,9 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
-import { User } from 'src/users/user.entity'; // Adjust path if necessary
-import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity'; // Adjust path if necessary
+import { User } from 'src/users/user.entity';
+import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
+import { GetCartDto } from './dto/get-cart.dto'; // Adjust path if necessary
 
 @Injectable()
 export class CartService {
@@ -28,7 +29,6 @@ export class CartService {
       throw new NotFoundException('Model not found');
     }
 
-    // Check if the model is already in the user's cart
     const existingCartItem = await this.cartRepository.findOne({
       where: { user, model },
     });
@@ -37,21 +37,28 @@ export class CartService {
       throw new BadRequestException('This item is already in your cart');
     }
 
-    // Create and save the new cart item
-    const cartItem = this.cartRepository.create({
-      user,
-      model,
-    });
-
+    const cartItem = this.cartRepository.create({ user, model });
     return this.cartRepository.save(cartItem);
   }
 
-  // Get all cart items for a user
-  async getCart(userId: number): Promise<Cart[]> {
-    return this.cartRepository.find({
+  // Get all cart items for a user and format the output using GetCartDto
+  async getCart(userId: number): Promise<GetCartDto[]> {
+    const cartItems = await this.cartRepository.find({
       where: { user: { id: userId } },
       relations: ['model', 'user'],
     });
+
+    if (!cartItems.length) {
+      throw new NotFoundException('No items in the cart for this user');
+    }
+
+    return cartItems.map((item) => ({
+      modelId: item.model.id,
+      price: item.model.price,
+      userName: item.user.userName,
+      modelUrl: item.model.modelUrl,
+      description: item.model.description,
+    }));
   }
 
   // Remove an item from the cart
