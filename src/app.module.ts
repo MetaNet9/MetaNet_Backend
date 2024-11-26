@@ -18,8 +18,8 @@ import { FileUploadModule } from './file-upload/file-upload.module';
 import { CategoryModule } from './category/category.module';
 import { CategoryService } from './category/category.service';
 import { Category } from './category/category.entity';
-import { CartModule } from './cart/cart.module';
-import { Cart } from './cart/entities/cart.entity';
+// import { CartModule } from './cart/cart.module';
+// import { Cart } from './cart/entities/cart.entity';
 import { PaymentModule } from './payment/payment.module';
 import { StripeModule } from './stripe/stripe.module';
 import { Payment } from './payment/entities/payment.entity';
@@ -33,7 +33,7 @@ import { Payment } from './payment/entities/payment.entity';
       username: 'postgres',
       password: 'password',
       database: 'metanet',
-      entities: [User, Vebxrmodel, Category, Cart, Payment],
+      entities: [User, Vebxrmodel, Category, Payment],
       synchronize: true,
     }),
     AuthModule,
@@ -42,7 +42,6 @@ import { Payment } from './payment/entities/payment.entity';
     VebxrmodelModule,
     FileUploadModule,
     CategoryModule,
-    CartModule,
     PaymentModule,
     StripeModule
   ],
