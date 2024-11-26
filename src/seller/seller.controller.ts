@@ -1,34 +1,57 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+// seller.controller.ts
+import { Controller, Post, Get, Param, Body, Put, Delete, Req } from '@nestjs/common';
 import { SellerService } from './seller.service';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { UpdateSellerDto } from './dto/update-seller.dto';
+import { Seller } from './entities/seller.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
-@Controller('seller')
+@Controller('sellers')
 export class SellerController {
   constructor(private readonly sellerService: SellerService) {}
 
+  // Create a new seller
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createSellerDto: CreateSellerDto) {
-    return this.sellerService.create(createSellerDto);
+  async create(@Body() createSellerDto: CreateSellerDto, @Req() req,): Promise<Seller> {
+    const userId = req.user.userId;
+    console.log('userId', userId);
+    return this.sellerService.create(createSellerDto, userId);
   }
 
+  // Get all sellers
   @Get()
-  findAll() {
+  async findAll(): Promise<Seller[]> {
     return this.sellerService.findAll();
   }
 
+  // Get seller by ID
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sellerService.findOne(+id);
+  async findOne(@Param('id') id: number): Promise<Seller> {
+    return this.sellerService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSellerDto: UpdateSellerDto) {
-    return this.sellerService.update(+id, updateSellerDto);
+  // Update seller details
+  @UseGuards(JwtAuthGuard)
+  @Put()
+  async update(
+    @Body() updateSellerDto: UpdateSellerDto,
+    @Req() req,
+  ): Promise<Seller> {
+    const userId = req.user.userId;
+    return this.sellerService.update(updateSellerDto, userId);
   }
 
+  // Delete seller by ID
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sellerService.remove(+id);
+  async remove(@Param('id') id: number): Promise<void> {
+    return this.sellerService.remove(id);
   }
+
+  // Get seller's bank details
+  // @Get(':id/bank-details')
+  // async getSellerBankDetails(@Param('id') id: number): Promise<Partial<Seller>> {
+  //   return this.sellerService.getSellerBankDetails(id);
+  // }
 }

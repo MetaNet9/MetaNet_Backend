@@ -24,6 +24,7 @@ import { Payment } from './payment/entities/payment.entity';
 import { SellerModule } from './seller/seller.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { PaymentModule } from './payment/payment.module';
+import { Seller } from './seller/entities/seller.entity';
 
 @Module({
   imports: [
@@ -34,7 +35,7 @@ import { PaymentModule } from './payment/payment.module';
       username: 'postgres',
       password: 'password',
       database: 'metanet',
-      entities: [User, Vebxrmodel, Category, Payment, Cart],
+      entities: [User, Vebxrmodel, Category, Payment, Cart, Seller],
       synchronize: true,
     }),
     AuthModule,
@@ -45,7 +46,8 @@ import { PaymentModule } from './payment/payment.module';
     CategoryModule,
     CartModule,
     StatisticsModule,
-    PaymentModule
+    PaymentModule,
+    SellerModule
   ],
   
   providers: [
