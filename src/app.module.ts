@@ -25,6 +25,7 @@ import { SellerModule } from './seller/seller.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { PaymentModule } from './payment/payment.module';
 import { Seller } from './seller/entities/seller.entity';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { Seller } from './seller/entities/seller.entity';
     CartModule,
     StatisticsModule,
     PaymentModule,
-    SellerModule
+    SellerModule,
+    TransactionModule
   ],
   
   providers: [
