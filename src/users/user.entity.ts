@@ -1,5 +1,6 @@
 // users/user.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn  } from 'typeorm';
+import { Seller } from 'src/seller/entities/seller.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -36,4 +37,8 @@ export class User {
     default: UserRole.USER,
   })
   roles: UserRole[];
+
+  @OneToOne(() => Seller, (seller) => seller.user, { nullable: true })
+  @JoinColumn()
+  seller: Seller | null;  // Optional relationship with Seller
 }
