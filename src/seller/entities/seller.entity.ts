@@ -7,8 +7,10 @@ import {
     UpdateDateColumn,
     OneToOne,
     JoinColumn,
+    OneToMany
   } from 'typeorm';
   import { User } from 'src/users/user.entity';
+  import { Transaction } from 'src/transaction/entities/transaction.entity';
   
   @Entity('seller')
   export class Seller {
@@ -69,5 +71,13 @@ import {
   
     @Column({ type: 'varchar', length: 255 })
     accountName: string;
+
+    // make a column to save account balance. default is 0
+    @Column({ type: 'float', default: 0 })
+    accountBalance: number;
+
+    @OneToMany(() => Transaction, (transaction) => transaction.seller)
+    transactions: Transaction[];
+    
   }
   
