@@ -21,6 +21,7 @@ import { Category } from './category/category.entity';
 import { CartModule } from './cart/cart.module';
 import { Cart } from './cart/entities/cart.entity';
 import { Payment } from './payment/entities/payment.entity';
+import { SellerModule } from './seller/seller.module';
 
 @Module({
   imports: [
