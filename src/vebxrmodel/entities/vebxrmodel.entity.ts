@@ -77,4 +77,5 @@ export class Vebxrmodel {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
 }
