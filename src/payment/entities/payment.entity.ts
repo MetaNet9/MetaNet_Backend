@@ -27,4 +27,8 @@ export class Payment {
 
   @Column({ type: 'int', nullable: true })
   reviewStars: number;
+
+  // status of payment
+  @Column({ default: 'pending' })
+  status: string;
 }

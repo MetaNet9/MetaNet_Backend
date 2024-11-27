@@ -6,6 +6,9 @@ import { UpdateSellerDto } from './dto/update-seller.dto';
 import { Seller } from './entities/seller.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
+import { UserRole } from 'src/users/user.entity';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('sellers')
 export class SellerController {
@@ -33,7 +36,8 @@ export class SellerController {
   }
 
   // Update seller details
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SELLER)
   @Put()
   async update(
     @Body() updateSellerDto: UpdateSellerDto,
