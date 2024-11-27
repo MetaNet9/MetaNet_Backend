@@ -35,7 +35,7 @@ import { Transaction } from './transaction/entities/transaction.entity';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: 'password',
+      password: '71571698',
       database: 'metanet',
       entities: [User, Vebxrmodel, Category, Payment, Cart, Seller, Transaction],
       synchronize: true,
