@@ -41,4 +41,11 @@ export class User {
   @OneToOne(() => Seller, (seller) => seller.user, { nullable: true })
   @JoinColumn()
   seller: Seller | null;  // Optional relationship with Seller
+
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @Column({ nullable: true })
+  verificationToken: string;
+
 }

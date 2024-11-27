@@ -42,7 +42,7 @@ export class ModeratorManageService {
       throw new UnauthorizedException('User not found');
     }
 
-    await this.usersService.delete(existingUser.id.toString());
+    await this.usersService.delete(existingUser.id);
     return true;
   }
 

@@ -1,7 +1,8 @@
 // payment.controller.ts
-import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Get, Query } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { GetTransactionsDto } from './dto/transactions.dto';
 
 @Controller('payment')
 export class PaymentController {
@@ -35,5 +36,10 @@ export class PaymentController {
   ) {
     const userId = req.user.userId;
     return this.paymentService.addReview(userId, modelId, reviewMessage, reviewStars);
+  }
+
+  @Get('transactions')
+  async getTransactions(@Query() filters: GetTransactionsDto) {
+    return this.paymentService.getTransactions(filters);
   }
 }
