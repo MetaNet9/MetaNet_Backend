@@ -19,4 +19,7 @@ export class CreateUserDto {
 
   @IsArray()
   roles: UserRole[];
+
+  @IsString()
+  contactNo: String;
 }

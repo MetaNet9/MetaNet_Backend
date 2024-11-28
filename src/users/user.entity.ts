@@ -48,4 +48,10 @@ export class User {
   @Column({ nullable: true })
   verificationToken: string;
 
+  @Column({ nullable: false, default: true })
+  isActive: boolean;
+
+  @Column({ nullable: true })
+  contactNo: string;
+
 }

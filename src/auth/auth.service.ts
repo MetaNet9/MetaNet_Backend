@@ -99,4 +99,54 @@ export class AuthService {
       access_token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET_KEY }),
     };
   }
+
+  async createUserByAdmin(createUserDto: CreateUserDto) {
+    const { firstName, lastName, email, password, roles, userName, contactNo } = createUserDto;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const existingUser = await this.usersService.findOneByEmail(email);
+    if (existingUser) {
+      throw new UnauthorizedException('Email already registered');
+    }
+
+    const verificationToken = Math.random().toString(36).substr(2); // Generate a random token
+
+    const user = await this.usersService.create({
+      email,
+      password: hashedPassword,
+      roles,
+      firstName,
+      lastName,
+      userName,
+      isVerified: false,
+      isActive: true,
+      verificationToken,
+      contactNo: contactNo.toString(),
+    });
+
+    // Send verification email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Email Verification',
+      html: `
+        <p>Hi ${firstName},</p>
+        <p>Your account has been created. Please verify your email by clicking on the link below:</p>
+        <a href="${process.env.APP_URL}/auth/verify-email?token=${verificationToken}">Verify Email</a>
+        <p>Your password: ${password}</p>
+      `,
+    };
+
+    // await transporter.sendMail(mailOptions);
+
+    return { message: 'User created successfully! Please check your email to verify your account.' };
+  }
 }
