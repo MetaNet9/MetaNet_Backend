@@ -43,16 +43,6 @@ export class UpdateSellerDto {
   contactNumber?: string;
 
   @IsOptional()
-  @IsEmail()
-  @Length(5, 255)
-  email?: string;
-
-  @IsOptional()
-  @IsString()
-  @Length(6, 255)
-  password?: string;
-
-  @IsOptional()
   @IsString()
   @Length(3, 255)
   bankName?: string;

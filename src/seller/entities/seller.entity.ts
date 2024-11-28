@@ -48,12 +48,6 @@ export class Seller {
   @Column({ type: 'varchar', length: 15, nullable: true })
   contactNumber: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  email: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  password: string;
-
   @CreateDateColumn()
   createdAt: Date;
 
