@@ -2,6 +2,8 @@ import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express';
 import axios from 'axios';
 import * as FormData from 'form-data';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ModelService } from './model.service';
 
 @Controller('upload-and-analyze')
@@ -27,17 +29,31 @@ export class ModelController {
 
       const analysisResult = flaskResponse.data;
 
-      // Step 2: Save the analysis result in the database
+      // Step 2: Save the file locally in /uploads with timestamped name
+      const uploadDir = path.join(__dirname, '../../uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const savedFileName = `${path.basename(file.originalname, path.extname(file.originalname))}_${timestamp}${path.extname(file.originalname)}`;
+      const savedFilePath = path.join(uploadDir, savedFileName);
+
+      fs.writeFileSync(savedFilePath, file.buffer);
+
+      // Step 3: Save the analysis result in the database
       const savedModel = await this.modelService.saveModelDetails(
-        file.originalname,
+        savedFileName,
         analysisResult,
       );
 
-      // Step 3: Return the result to the frontend
+      // Step 4: Return the result to the frontend with access link
+      const fileAccessUrl = `/uploads/${savedFileName}`;
       return {
         success: true,
         message: 'Model analyzed and saved successfully',
         savedModel,
+        fileAccessUrl,
       };
     } catch (error) {
       console.error('Error communicating with Flask:', error.message);

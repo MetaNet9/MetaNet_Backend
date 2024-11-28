@@ -33,7 +33,7 @@ document.getElementById("upload-form").addEventListener("submit", async (event) 
 
     // Display result
     resultContainer.textContent = JSON.stringify(result, null, 2);
-    alert("Model analysis and saving completed!");
+    // alert("Model analysis and saving completed!");
   } catch (error) {
     console.error(error);
     alert(`Error: ${error.message}`);
