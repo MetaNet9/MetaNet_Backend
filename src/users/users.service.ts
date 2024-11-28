@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import { UserRole } from './user.entity';
 
 @Injectable()
 export class UsersService {
@@ -49,5 +50,43 @@ export class UsersService {
   // find one by id
   async findOneById(id: number): Promise<User | undefined> {
     return this.usersRepository.findOne({ where: { id } });
+  }
+
+  // i need a endpoint to get total number of users , active users count, deactivated users count and list of the those users Name, email, contact, status by a role and that must be filter by the email name and the status
+  async getUsersByRole(role: string, name: string, email: string, status: string) {
+    const query = this.usersRepository.createQueryBuilder('user');
+
+    if (role) {
+      query.where('user.roles LIKE :role', { role: `%${role}%` })
+    }   
+
+    if (email) {
+      query.andWhere('user.email ILIKE :email', { email: `%${email}%` });
+    }
+
+    if (name) {
+      query.andWhere('user.firstName ILIKE :name', { name: `%${name}%` });
+    }
+
+    if (status) {
+      query.andWhere('user.isActive = :status', { status: status === 'active' });
+    }
+
+    const [users, total] = await query.getManyAndCount();
+
+    const activeUsers = users.filter(user => user.isActive);
+    const deactivatedUsers = users.filter(user => !user.isActive);
+
+    return {
+      total,
+      activeUsers: activeUsers.length,
+      deactivatedUsers: deactivatedUsers.length,
+      users: users.map(user => ({
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        contact: user.contactNo,
+        status: user.isActive ? 'active' : 'inactive',
+      })),
+    };
   }
 }

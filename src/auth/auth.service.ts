@@ -149,4 +149,10 @@ export class AuthService {
 
     return { message: 'User created successfully! Please check your email to verify your account.' };
   }
+
+  // i need a endpoint to get total number of users , active users count, deactivated users count and list of the those users Name, email, contact, status by a role and that must be filter by the email name and the status
+  async getUsersByRole(role: string, name: string, email: string, status: string) {
+    const users = await this.usersService.getUsersByRole(role, name, email, status);
+    return users;
+  }
 }
