@@ -22,8 +22,8 @@ export class AuthController {
         throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
       }
       const token = await this.authService.login(user);
-      res.cookie('access_token', token.access_token, { httpOnly: true }); // Set the cookie
-      return res.send({ success: true });
+      res.cookie('access_token', token.access_token, { httpOnly: true,sameSite: 'none',secure:true, path: '/', maxAge: 60 * 60 * 1000 }); // Set the cookie
+      return res.send({ success: true ,details: user});
     } catch (error) {
       throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -75,7 +75,7 @@ export class AuthController {
   async googleAuthRedirect(@Request() req, @Res() res: Response) {
     try {
       const token = await this.authService.googleLogin(req.user);
-      res.cookie('access_token', token.access_token, { httpOnly: true }); // Set the cookie
+      res.cookie('access_token', token.access_token, { httpOnly: true,sameSite: 'none',secure:true, path: '/', maxAge: 60 * 60 * 1000 }); // Set the cookie
       return res.send({ success: true });
     } catch (error) {
       throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
