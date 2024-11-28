@@ -39,14 +39,6 @@ export class CreateSellerDto {
   @Length(10, 15)
   contactNumber: string;
 
-  @IsEmail()
-  @Length(5, 255)
-  email: string;
-
-  @IsString()
-  @Length(6, 255)
-  password: string;
-
   @IsString()
   @Length(3, 255)
   bankName: string;
