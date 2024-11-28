@@ -55,6 +55,11 @@ export class UsersService {
   // i need a endpoint to get total number of users , active users count, deactivated users count and list of the those users Name, email, contact, status by a role and that must be filter by the email name and the status
   async getUsersByRole(role: string, name: string, email: string, status: string) {
     const query = this.usersRepository.createQueryBuilder('user');
+    const query2 = this.usersRepository.createQueryBuilder('user');
+
+    if (role) {
+      query2.where('user.roles LIKE :role', { role: `%${role}%` })
+    }  
 
     if (role) {
       query.where('user.roles LIKE :role', { role: `%${role}%` })
@@ -73,12 +78,13 @@ export class UsersService {
     }
 
     const [users, total] = await query.getManyAndCount();
+    const [users2, total2] = await query2.getManyAndCount();
 
-    const activeUsers = users.filter(user => user.isActive);
-    const deactivatedUsers = users.filter(user => !user.isActive);
+    const activeUsers = users2.filter(user2 => user2.isActive);
+    const deactivatedUsers = users2.filter(user2 => !user2.isActive);
 
     return {
-      total,
+      total2,
       activeUsers: activeUsers.length,
       deactivatedUsers: deactivatedUsers.length,
       users: users.map(user => ({
