@@ -4,6 +4,7 @@ import { Seller } from 'src/seller/entities/seller.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
+  SYSADMIN = 'sysadmin',
   MODERATOR = 'moderator',
   SELLER = 'seller',
   USER = 'user',

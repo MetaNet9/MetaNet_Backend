@@ -142,6 +142,19 @@ export class AuthController {
       throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  // i need a endpoint to get total number of users , active users count, deactivated users count and list of the those users Name, email, contact, status by a role and that must be filter by the email name and the status
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('users')
+  async getUsersByRole(@Query('role') role: string, @Query('email') email: string, @Query('status') status: string, @Query('name') name: string ,@Res() res: Response) {
+    try {
+      const users = await this.authService.getUsersByRole(role, name, email, status);
+      return res.send(users);
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
 
 
