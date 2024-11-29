@@ -20,60 +20,9 @@ export class VebxrmodelService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
 
-    @InjectRepository(ReviewRequest) // Inject ReviewRequest repository here
-    private readonly reviewRequestRepository: Repository<ReviewRequest>,
   ) {}
-
-  // Create Vebxrmodel after review approval
-  async approveReviewRequest(reviewRequestId: number, userId: number): Promise<Vebxrmodel> {
-    const reviewRequest = await this.reviewRequestRepository.findOne({
-      where: { id: reviewRequestId },
-      relations: ['category', 'modelOwner'], // Load related entities
-    });
-  
-    if (!reviewRequest) {
-      throw new Error('Review request not found');
-    }
-  
-    if (reviewRequest.resolved) {
-      throw new Error('Review request is already resolved');
-    }
-  
-    reviewRequest.resolved = true;
-    await this.reviewRequestRepository.save(reviewRequest);
-  
-    const seller = await this.sellerRepository.findOne({
-      where: { user: { id: userId } },
-    });
-  
-    if (!seller) {
-      throw new Error('Seller not found');
-    }
-  
-    const Vebxrmodel = this.VebxrmodelRepository.create({
-      title: reviewRequest.title,
-      description: reviewRequest.description,
-      modelUrl: reviewRequest.modelUrl,
-      image1Url: reviewRequest.image1Url,
-      image2Url: reviewRequest.image2Url,
-      image3Url: reviewRequest.image3Url,
-      category: reviewRequest.category,
-      tags: reviewRequest.tags,
-      downloadType: reviewRequest.downloadType,
-      license: reviewRequest.license,
-      format: reviewRequest.format,
-      price: reviewRequest.price,
-      modelOwner: seller,
-      downloads: 0,
-      likes: 0,
-      createdAt: new Date(),
-    });
-  
-    return this.VebxrmodelRepository.save(Vebxrmodel);
-  }
   
 
-  // Create a Vebxrmodel (existing method)
   async create(createVebxrmodelDto: CreateVebxrmodelDto, userId: number): Promise<Vebxrmodel> {
     const category = await this.categoryRepository.findOne({
       where: { id: createVebxrmodelDto.category },

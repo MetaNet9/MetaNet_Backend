@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Req } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ReviewRequest } from './entities/review_request.entity';
@@ -6,6 +6,7 @@ import { Seller } from 'src/seller/entities/seller.entity';
 import { User } from 'src/users/user.entity';
 import { ModelEntity } from 'src/model/entities/model.entity';
 import { CreateReviewRequestDto } from './dto/create-review_request.dto';
+import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
 
 @Injectable()
 export class ReviewRequestService {
@@ -18,6 +19,8 @@ export class ReviewRequestService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(ModelEntity)
     private readonly modelRepository: Repository<ModelEntity>,
+    @InjectRepository(Vebxrmodel)
+    private readonly VebxrmodelRepository: Repository<Vebxrmodel>,
   ) {}
 
   async createReviewRequest(createReviewRequestDto: Partial<CreateReviewRequestDto>, userId: number) {
@@ -74,5 +77,52 @@ export class ReviewRequestService {
     }
 
     return await this.reviewRequestRepository.remove(reviewRequest);
+  }
+
+  async approveReviewRequest(reviewRequestId: number ): Promise<Vebxrmodel> {
+    const reviewRequest = await this.reviewRequestRepository.findOne({
+      where: { id: reviewRequestId },
+      relations: ['category', 'modelOwner'], // Load related entities
+    });
+  
+    if (!reviewRequest) {
+      throw new Error('Review request not found');
+    }
+  
+    if (reviewRequest.resolved) {
+      throw new Error('Review request is already resolved');
+    }
+  
+    reviewRequest.resolved = true;
+    await this.reviewRequestRepository.save(reviewRequest);
+  
+    // const seller = await this.sellerRepository.findOne({
+    //   where: { user: { id: userId } },
+    // });
+  
+    // if (!seller) {
+    //   throw new Error('Seller not found');
+    // }
+  
+    const Vebxrmodel = this.VebxrmodelRepository.create({
+      title: reviewRequest.title,
+      description: reviewRequest.description,
+      modelUrl: reviewRequest.modelUrl,
+      image1Url: reviewRequest.image1Url,
+      image2Url: reviewRequest.image2Url,
+      image3Url: reviewRequest.image3Url,
+      category: reviewRequest.category,
+      tags: reviewRequest.tags,
+      downloadType: reviewRequest.downloadType,
+      license: reviewRequest.license,
+      format: reviewRequest.format,
+      price: reviewRequest.price,
+      // modelOwner: seller,
+      downloads: 0,
+      likes: 0,
+      createdAt: new Date(),
+    });
+  
+    return this.VebxrmodelRepository.save(Vebxrmodel);
   }
 }
