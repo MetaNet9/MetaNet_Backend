@@ -1,9 +1,18 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+} from 'typeorm';
+import { Seller } from 'src/seller/entities/seller.entity';
 
 @Entity('models')
 export class ModelEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @ManyToOne(() => Seller, (seller) => seller.models, { onDelete: 'CASCADE' })
+  seller: Seller;
 
   @Column()
   fileName: string;
@@ -11,6 +20,6 @@ export class ModelEntity {
   @Column('jsonb')
   parameters: any;
 
-  @Column()
+  @Column({ type: 'boolean', default: true })
   valid: boolean;
 }

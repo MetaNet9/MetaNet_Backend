@@ -1,21 +1,29 @@
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import axios from 'axios';
 import * as FormData from 'form-data';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ModelService } from './model.service';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { UserRole } from 'src/users/user.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('upload')
 export class ModelController {
   constructor(private readonly modelService: ModelService) {}
 
+  @Roles(UserRole.SELLER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('model')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadAndAnalyze(@UploadedFile() file: Express.Multer.File) {
+  async uploadAndAnalyze(@UploadedFile() file: Express.Multer.File, @Req() req ) {
     if (!file) {
       throw new Error('No file uploaded');
     }
+
+    const userId = req.user.userId;
 
     // Step 1: Forward file to Flask app for analysis
     const flaskUrl = 'http://localhost:5000/upload';
@@ -43,6 +51,7 @@ export class ModelController {
 
       // Step 3: Save the analysis result in the database
       const savedModel = await this.modelService.saveModelDetails(
+        userId,
         savedFileName,
         analysisResult,
       );
