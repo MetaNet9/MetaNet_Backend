@@ -96,4 +96,8 @@ export class UsersService {
       })),
     };
   }
+
+  async findByResetToken(token: string): Promise<User | undefined> {
+    return this.usersRepository.findOne({ where: { resetToken: token } });
+  }
 }

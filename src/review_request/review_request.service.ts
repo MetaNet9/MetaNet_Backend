@@ -79,11 +79,15 @@ export class ReviewRequestService {
     return await this.reviewRequestRepository.remove(reviewRequest);
   }
 
-  async approveReviewRequest(reviewRequestId: number ): Promise<Vebxrmodel> {
+  async approveReviewRequest(id: number, moderatorUserId: number ): Promise<Vebxrmodel> {
     const reviewRequest = await this.reviewRequestRepository.findOne({
-      where: { id: reviewRequestId },
+      where: { id: id },
       relations: ['category', 'modelOwner'], // Load related entities
     });
+
+    const reviewUser = await this.userRepository.findOne({ where: { id: moderatorUserId } });
+    console.log('reviewUser', id);
+    console.log('reviewRequest', moderatorUserId);
   
     if (!reviewRequest) {
       throw new Error('Review request not found');
@@ -92,17 +96,15 @@ export class ReviewRequestService {
     if (reviewRequest.resolved) {
       throw new Error('Review request is already resolved');
     }
-  
+
     reviewRequest.resolved = true;
+    reviewRequest.reviewer = await this.userRepository.findOne({ where: { id: moderatorUserId } });
     await this.reviewRequestRepository.save(reviewRequest);
   
-    // const seller = await this.sellerRepository.findOne({
-    //   where: { user: { id: userId } },
-    // });
-  
-    // if (!seller) {
-    //   throw new Error('Seller not found');
-    // }
+    reviewRequest.resolved = true;
+
+    reviewRequest.reviewer = await this.userRepository.findOne({ where: { id: moderatorUserId } });
+    await this.reviewRequestRepository.save(reviewRequest);
   
     const Vebxrmodel = this.VebxrmodelRepository.create({
       title: reviewRequest.title,
@@ -117,12 +119,32 @@ export class ReviewRequestService {
       license: reviewRequest.license,
       format: reviewRequest.format,
       price: reviewRequest.price,
-      // modelOwner: seller,
+      modelOwner: reviewRequest.modelOwner,
       downloads: 0,
       likes: 0,
       createdAt: new Date(),
     });
   
     return this.VebxrmodelRepository.save(Vebxrmodel);
+  }
+
+  async declineReviewRequest(id: number, reviewNotes: string, userId: number) {
+    const reviewRequest = await this.reviewRequestRepository.findOne({ where: { id } });
+
+    if (!reviewRequest) {
+      throw new NotFoundException('Review request not found.');
+    }
+
+    if (reviewRequest.resolved) {
+      throw new Error('Review request is already resolved');
+    }
+
+    // Update the review request with the decline note and mark it as resolved
+    reviewRequest.reviewNotes = reviewNotes;
+    reviewRequest.resolved = true;
+    reviewRequest.reviewer = await this.userRepository.findOne({ where: { id: userId } });
+    reviewRequest.rejected = true;
+
+    return this.reviewRequestRepository.save(reviewRequest);
   }
 }
