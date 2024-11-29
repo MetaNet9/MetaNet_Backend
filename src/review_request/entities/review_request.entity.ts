@@ -74,6 +74,9 @@ import { ModelEntity } from 'src/model/entities/model.entity';
     @JoinColumn({ name: 'model_id' })
     model: ModelEntity;
 
+    @Column({ default: false })
+    rejected: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
   }

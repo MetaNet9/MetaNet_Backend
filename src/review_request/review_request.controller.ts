@@ -9,6 +9,9 @@ import {
   HttpCode,
   UseGuards,
   Req,
+  Get,
+  InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ReviewRequestService } from './review_request.service';
 import { ReviewRequest } from './entities/review_request.entity';
@@ -26,20 +29,82 @@ export class ReviewRequestController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   async createReviewRequest(@Body() createReviewRequestDto: Partial<ReviewRequest>, @Req() req) {
-    const userId = req.user.id; // Assuming `req.user` contains the authenticated user
-    return await this.reviewRequestService.createReviewRequest(createReviewRequestDto, userId);
+    try {
+      const userId = req.user.id; // Assuming `req.user` contains the authenticated user
+      return await this.reviewRequestService.createReviewRequest(createReviewRequestDto, userId);
+    } catch (error) {
+      console.error('Error creating review request:', error);
+      if (error.message.includes('User not found') || error.message.includes('Seller not found')) {
+        throw new NotFoundException(error.message);
+      }
+      throw new BadRequestException('Failed to create review request. Please check your input.');
+    }
   }
 
   // UPDATE Review Request Status
   @Patch(':id/status')
   async updateStatus(@Param('id') id: number, @Body('resolved') resolved: boolean) {
-    return await this.reviewRequestService.updateStatus(id, resolved);
+    try {
+      return await this.reviewRequestService.updateStatus(id, resolved);
+    } catch (error) {
+      console.error('Error updating review request status:', error);
+      if (error.message.includes('not found')) {
+        throw new NotFoundException('Review request not found.');
+      }
+      throw new InternalServerErrorException('Failed to update review request status.');
+    }
   }
 
   // DELETE Review Request
   @Delete(':id')
   @HttpCode(204)
   async deleteReviewRequest(@Param('id') id: number) {
-    return await this.reviewRequestService.deleteReviewRequest(id);
+    try {
+      return await this.reviewRequestService.deleteReviewRequest(id);
+    } catch (error) {
+      console.error('Error deleting review request:', error);
+      if (error.message.includes('not found')) {
+        throw new NotFoundException('Review request not found.');
+      }
+      throw new InternalServerErrorException('Failed to delete review request.');
+    }
+  }
+
+  // ACCEPT Review Request
+  // @Roles(UserRole.MODERATOR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch('accept/:id')
+  async acceptReviewRequest(@Param('id') id: number, @Req() req) {
+    try {
+      const userId = req.user.id; // Assuming `req.user` contains the authenticated user
+      return await this.reviewRequestService.approveReviewRequest(id, userId);
+    } catch (error) {
+      console.error('Error accepting review request:', error);
+      if (error.message.includes('not found')) {
+        throw new NotFoundException('Review request not found.');
+      }
+      throw new InternalServerErrorException('Failed to accept review request.');
+    }
+  }
+
+   // ACCEPT Review Request
+  // @Roles(UserRole.MODERATOR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post('decline/:id')
+  async declineReviewRequest(
+    @Param('id') id: number,
+    @Body('reviewNotes') reviewNotes: string,
+    @Req() req,
+  ) {
+    try {
+      const userId = req.user.userId;
+      return await this.reviewRequestService.declineReviewRequest(id, reviewNotes, userId);
+    } catch (error) {
+      console.error('Error declining review request:', error);
+      if (error.message.includes('not found')) {
+        throw new NotFoundException('Review request not found.');
+      }
+      throw new InternalServerErrorException('Failed to decline review request.');
+    }
   }
 }
