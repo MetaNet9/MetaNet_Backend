@@ -6,11 +6,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ModelService } from './model.service';
 
-@Controller('upload-and-analyze')
+@Controller('upload')
 export class ModelController {
   constructor(private readonly modelService: ModelService) {}
 
-  @Post()
+  @Post('model')
   @UseInterceptors(FileInterceptor('file'))
   async uploadAndAnalyze(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
@@ -48,7 +48,7 @@ export class ModelController {
       );
 
       // Step 4: Return the result to the frontend with access link
-      const fileAccessUrl = `/uploads/${savedFileName}`;
+      const fileAccessUrl = `${process.env.APP_URL}/uploads/${savedFileName}`;
       return {
         success: true,
         message: 'Model analyzed and saved successfully',
@@ -59,5 +59,35 @@ export class ModelController {
       console.error('Error communicating with Flask:', error.message);
       throw new Error('Failed to analyze the model');
     }
+  }
+
+  @Post('image')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new Error('No file uploaded');
+    }
+
+    // Create the uploads directory if it doesn't exist
+    const uploadDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // Generate a unique file name
+    const randomNumber = Math.floor(Math.random() * 10000);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const savedFileName = `${path.basename(file.originalname, path.extname(file.originalname))}_${randomNumber}_${timestamp}${path.extname(file.originalname)}`;
+    const savedFilePath = path.join(uploadDir, savedFileName);
+
+    fs.writeFileSync(savedFilePath, file.buffer);
+
+    const fileAccessUrl = `${process.env.APP_URL}/uploads/${savedFileName}`;
+
+    return {
+      success: true,
+      message: 'Image uploaded successfully',
+      fileAccessUrl,
+    };
   }
 }
