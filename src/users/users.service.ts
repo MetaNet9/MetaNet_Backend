@@ -88,6 +88,7 @@ export class UsersService {
       activeUsers: activeUsers.length,
       deactivatedUsers: deactivatedUsers.length,
       users: users.map(user => ({
+        id: user.id,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         contact: user.contactNo,
