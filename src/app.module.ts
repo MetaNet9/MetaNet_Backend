@@ -21,6 +21,8 @@ import { TransactionsModule } from './transaction/transaction.module';
 import { Transaction } from './transaction/entities/transaction.entity';
 import { ModelModule } from './model/model.module';
 import { ModelEntity } from './model/entities/model.entity';
+import { ReviewRequest } from './review_request/entities/review_request.entity';
+import { ReviewRequestModule } from './review_request/review_request.module';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { ModelEntity } from './model/entities/model.entity';
       username: 'postgres',
       password: '71571698',
       database: 'metanet',
-      entities: [User, Vebxrmodel, Category, Payment, Cart, Seller, Transaction, ModelEntity],
+      entities: [User, Vebxrmodel, Category, Payment, Cart, Seller, Transaction, ModelEntity, ReviewRequest],
       synchronize: true,
     }),
     AuthModule,
@@ -44,7 +46,8 @@ import { ModelEntity } from './model/entities/model.entity';
     PaymentModule,
     SellerModule,
     TransactionsModule,
-    ModelModule
+    ModelModule,
+    ReviewRequestModule
   ],
   
   providers: [

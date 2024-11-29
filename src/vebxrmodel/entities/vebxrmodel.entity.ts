@@ -1,13 +1,22 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Category } from 'src/category/category.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  OneToOne,
+  CreateDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { Seller } from 'src/seller/entities/seller.entity';
+import { Category } from 'src/category/category.entity';
+import { ModelEntity } from 'src/model/entities/model.entity';
 
 @Entity()
 export class Vebxrmodel {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 255 })
   title: string;
 
   @Column('text')
@@ -16,55 +25,30 @@ export class Vebxrmodel {
   @Column()
   modelUrl: string;
 
-  @ManyToOne(() => Category, (category) => category.models)
-  @JoinColumn({ name: 'categoryId' }) // Optionally set a custom column name
+  @Column({ nullable: false })
+  image1Url: string;
+
+  @Column({ nullable: false })
+  image2Url: string;
+
+  @Column({ nullable: false })
+  image3Url: string;
+
+  @ManyToOne(() => Category, (category) => category.models, { nullable: false })
+  @JoinColumn({ name: 'category_id' })
   category: Category;
 
-  @Column()
-  tags: string;
+  @Column('text', { array: true })
+  tags: string[];
 
-  @Column({ default: 'No' })
+  @Column({ nullable: true, default: 'No' })
   downloadType: string;
-
-  @Column({ nullable: true })
-  triangleCount: number;
-
-  @Column({ nullable: true })
-  format: string;
 
   @Column({ nullable: true })
   license: string;
 
   @Column({ nullable: true })
-  vertices: number;
-
-  @Column({ nullable: true })
-  textures: string;
-
-  @Column({ nullable: true })
-  uvLayers: number;
-
-  @Column({ nullable: true })
-  materials: string;
-
-  @Column({ default: false })
-  pbr: boolean;
-
-  @Column({ default: false })
-  animation: boolean;
-
-  @Column({ default: false })
-  vertexColors: boolean;
-
-  @Column({ default: false })
-  riggedGeometry: boolean;
-
-  @Column({ default: false })
-  morphGeometry: boolean;
-
-  @ManyToOne(() => Seller, (seller) => seller.models, { nullable: false })
-  @JoinColumn({ name: 'modelOwnerId' }) // Custom column name
-  modelOwner: Seller;
+  format: string;
 
   @Column({ type: 'float', default: 0 })
   price: number;
@@ -75,6 +59,13 @@ export class Vebxrmodel {
   @Column({ default: 0 })
   likes: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @ManyToOne(() => Seller, (seller) => seller.models, { nullable: false })
+  @JoinColumn({ name: 'model_owner_id' })
+  modelOwner: Seller;
+
+  @CreateDateColumn()
   createdAt: Date;
+
+  @OneToOne(() => ModelEntity, (model) => model.vebxrModel, { nullable: true })
+  model: ModelEntity; // Updated for consistency
 }

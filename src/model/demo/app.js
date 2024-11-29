@@ -1,4 +1,4 @@
-const NESTJS_URL = "http://localhost:3000/upload-and-analyze";
+const NESTJS_URL = "http://localhost:3000/upload/model";
 
 document.getElementById("upload-form").addEventListener("submit", async (event) => {
   event.preventDefault();

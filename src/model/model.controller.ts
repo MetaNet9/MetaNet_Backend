@@ -1,21 +1,29 @@
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import axios from 'axios';
 import * as FormData from 'form-data';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ModelService } from './model.service';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { UserRole } from 'src/users/user.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@Controller('upload-and-analyze')
+@Controller('upload')
 export class ModelController {
   constructor(private readonly modelService: ModelService) {}
 
-  @Post()
+  @Roles(UserRole.SELLER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post('model')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadAndAnalyze(@UploadedFile() file: Express.Multer.File) {
+  async uploadAndAnalyze(@UploadedFile() file: Express.Multer.File, @Req() req ) {
     if (!file) {
       throw new Error('No file uploaded');
     }
+
+    const userId = req.user.userId;
 
     // Step 1: Forward file to Flask app for analysis
     const flaskUrl = 'http://localhost:5000/upload';
@@ -43,12 +51,13 @@ export class ModelController {
 
       // Step 3: Save the analysis result in the database
       const savedModel = await this.modelService.saveModelDetails(
+        userId,
         savedFileName,
         analysisResult,
       );
 
       // Step 4: Return the result to the frontend with access link
-      const fileAccessUrl = `/uploads/${savedFileName}`;
+      const fileAccessUrl = `${process.env.APP_URL}/uploads/${savedFileName}`;
       return {
         success: true,
         message: 'Model analyzed and saved successfully',
@@ -59,5 +68,35 @@ export class ModelController {
       console.error('Error communicating with Flask:', error.message);
       throw new Error('Failed to analyze the model');
     }
+  }
+
+  @Post('image')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new Error('No file uploaded');
+    }
+
+    // Create the uploads directory if it doesn't exist
+    const uploadDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // Generate a unique file name
+    const randomNumber = Math.floor(Math.random() * 10000);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const savedFileName = `${path.basename(file.originalname, path.extname(file.originalname))}_${randomNumber}_${timestamp}${path.extname(file.originalname)}`;
+    const savedFilePath = path.join(uploadDir, savedFileName);
+
+    fs.writeFileSync(savedFilePath, file.buffer);
+
+    const fileAccessUrl = `${process.env.APP_URL}/uploads/${savedFileName}`;
+
+    return {
+      success: true,
+      message: 'Image uploaded successfully',
+      fileAccessUrl,
+    };
   }
 }
