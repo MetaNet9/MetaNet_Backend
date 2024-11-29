@@ -3,8 +3,12 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Seller } from 'src/seller/entities/seller.entity';
+import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
+import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
 
 @Entity('models')
 export class ModelEntity {
@@ -22,4 +26,12 @@ export class ModelEntity {
 
   @Column({ type: 'boolean', default: true })
   valid: boolean;
+
+  @OneToOne(() => Vebxrmodel, (vebxrModel) => vebxrModel.model, { nullable: true })
+  @JoinColumn()
+  vebxrModel: Vebxrmodel; // Corrected naming
+
+  @OneToOne(() => ReviewRequest, (reviewRequest) => reviewRequest.model, { nullable: true })
+  @JoinColumn()
+  reviewRequest: ReviewRequest;
 }
