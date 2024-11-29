@@ -1,5 +1,5 @@
 // auth/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
@@ -217,4 +217,31 @@ export class AuthService {
 
     return { message: 'Password reset successfully' };
   }
+
+  async changePassword(userId: number, oldPassword: string, newPassword: string) {
+    // Find user by ID
+    const user = await this.usersService.findOneById(userId);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+  
+    if(oldPassword === newPassword) {
+      throw new HttpException('New password must be different from the old password', HttpStatus.BAD_REQUEST);
+    }
+    // Compare old password
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isOldPasswordValid) {
+      throw new HttpException('Invalid old password', HttpStatus.UNAUTHORIZED);
+    }
+  
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+    // Update user's password
+    user.password = hashedPassword;
+    await this.usersService.update(user.id, user);
+  
+    return { message: 'Password changed successfully' };
+  }
+  
 }

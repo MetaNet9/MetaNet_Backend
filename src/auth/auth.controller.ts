@@ -191,6 +191,24 @@ export class AuthController {
       throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @Request() req,
+    @Body() body: { oldPassword: string; newPassword: string },
+    @Res() res: Response
+  ) {
+    try {
+      const { oldPassword, newPassword } = body;
+      const userId = req.user.userId;
+      const result = await this.authService.changePassword(userId, oldPassword, newPassword);
+
+      return res.send({ success: true, message: 'Password changed successfully' });
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
 
 
