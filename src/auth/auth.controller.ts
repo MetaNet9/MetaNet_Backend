@@ -155,6 +155,42 @@ export class AuthController {
       throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @Post('forgot-password')
+  async sendResetPasswordEmail(@Body('email') email: string, @Res() res: Response) {
+    try {
+      const response = await this.authService.sendResetPasswordEmail(email);
+      return res.send(response);
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // 2. Verify Reset Password Token
+  @Get('reset-password')
+  async verifyResetPasswordToken(@Query('token') token: string, @Res() res: Response) {
+    try {
+      const response = await this.authService.verifyResetPasswordToken(token);
+      return res.send(response);
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // 3. Reset Password
+  @Post('reset-password')
+  async resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const response = await this.authService.resetPassword(token, newPassword);
+      return res.send(response);
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
 
 
