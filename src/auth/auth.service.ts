@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserRole } from '../users/user.entity';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class AuthService {
@@ -16,11 +17,15 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersService.findOneByEmail(email);
     if (user && await bcrypt.compare(password, user.password)) {
+      if (!user.isVerified) {
+        throw new UnauthorizedException('Email not verified');
+      }
       const { password, ...result } = user;
       return result;
     }
     return null;
   }
+  
 
   async login(user: any) {
     const payload = { email: user.email, sub: user.id, roles: user.roles };
@@ -32,12 +37,14 @@ export class AuthService {
   async register(createUserDto: CreateUserDto) {
     const { firstName, lastName, email, password, roles, userName } = createUserDto;
     const hashedPassword = await bcrypt.hash(password, 10);
-
+  
     const existingUser = await this.usersService.findOneByEmail(email);
     if (existingUser) {
       throw new UnauthorizedException('Email already registered');
     }
-
+  
+    const verificationToken = Math.random().toString(36).substr(2); // Generate a random token
+  
     const user = await this.usersService.create({
       email,
       password: hashedPassword,
@@ -45,10 +52,37 @@ export class AuthService {
       firstName,
       lastName,
       userName,
+      isVerified: false,
+      verificationToken,
     });
+  
+    // Send verification email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER, // Your Gmail address
+        pass: process.env.GMAIL_PASS, // Your Gmail app password
+      },
+    });
+  
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Email Verification',
+      html: `
+        <p>Hi ${firstName},</p>
+        <p>Please verify your email by clicking on the link below:</p>
+        <a href="${process.env.APP_URL}/auth/verify-email?token=${verificationToken}">Verify Email</a>
+      `,
+    };
 
-    return this.login(user);
+    console.log('mailOptions', mailOptions);
+  
+    await transporter.sendMail(mailOptions);
+  
+    return { message: 'Registration successful! Please check your email to verify your account.' };
   }
+
 
   async googleLogin(user: any) {
     let existingUser = await this.usersService.findOneByGoogleId(user.id);
@@ -64,5 +98,61 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET_KEY }),
     };
+  }
+
+  async createUserByAdmin(createUserDto: CreateUserDto) {
+    const { firstName, lastName, email, password, roles, userName, contactNo } = createUserDto;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const existingUser = await this.usersService.findOneByEmail(email);
+    if (existingUser) {
+      throw new UnauthorizedException('Email already registered');
+    }
+
+    const verificationToken = Math.random().toString(36).substr(2); // Generate a random token
+
+    const user = await this.usersService.create({
+      email,
+      password: hashedPassword,
+      roles,
+      firstName,
+      lastName,
+      userName,
+      isVerified: false,
+      isActive: true,
+      verificationToken,
+      contactNo: contactNo.toString(),
+    });
+
+    // Send verification email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Email Verification',
+      html: `
+        <p>Hi ${firstName},</p>
+        <p>Your account has been created. Please verify your email by clicking on the link below:</p>
+        <a href="${process.env.APP_URL}/auth/verify-email?token=${verificationToken}">Verify Email</a>
+        <p>Your password: ${password}</p>
+      `,
+    };
+
+    // await transporter.sendMail(mailOptions);
+
+    return { message: 'User created successfully! Please check your email to verify your account.' };
+  }
+
+  // i need a endpoint to get total number of users , active users count, deactivated users count and list of the those users Name, email, contact, status by a role and that must be filter by the email name and the status
+  async getUsersByRole(role: string, name: string, email: string, status: string) {
+    const users = await this.usersService.getUsersByRole(role, name, email, status);
+    return users;
   }
 }

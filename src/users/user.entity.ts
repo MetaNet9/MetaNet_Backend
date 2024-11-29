@@ -4,6 +4,7 @@ import { Seller } from 'src/seller/entities/seller.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
+  SYSADMIN = 'sysadmin',
   MODERATOR = 'moderator',
   SELLER = 'seller',
   USER = 'user',
@@ -41,4 +42,17 @@ export class User {
   @OneToOne(() => Seller, (seller) => seller.user, { nullable: true })
   @JoinColumn()
   seller: Seller | null;  // Optional relationship with Seller
+
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @Column({ nullable: true })
+  verificationToken: string;
+
+  @Column({ nullable: false, default: true })
+  isActive: boolean;
+
+  @Column({ nullable: true })
+  contactNo: string;
+
 }

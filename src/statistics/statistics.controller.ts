@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { VebxrmodelService } from 'src/vebxrmodel/vebxrmodel.service';
 import { StatisticsService } from './statistics.service';
 
@@ -9,5 +9,13 @@ export class StatisticsController {
   @Get()
   async getStatistics() {
     return this.statisticsService.getStatistics();
+  }
+
+  @Get('revenue')
+  async getRevenueData(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.statisticsService.getRevenueData(startDate, endDate);
   }
 }

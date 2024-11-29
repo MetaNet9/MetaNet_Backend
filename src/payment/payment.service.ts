@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Payment } from './entities/payment.entity';
 import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
 import { StripeService } from 'src/stripe/stripe.service';
+import { GetTransactionsDto } from './dto/transactions.dto';
 
 @Injectable()
 export class PaymentService {
@@ -49,6 +50,7 @@ export class PaymentService {
         user: { id: userId },
         model: { id: modelId },
         amount: totalAmount / 100, // Convert back to dollars
+        status: 'pending',
       });
 
       purchases.push(await this.paymentRepository.save(payment));
@@ -75,4 +77,53 @@ export class PaymentService {
 
     return this.paymentRepository.save(purchase);
   }
+
+  async getTransactions(filters: GetTransactionsDto) {
+    const { creatorName, modelName, startDate, endDate } = filters;
+  
+    const query = this.paymentRepository.createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.user', 'user') // Join user data
+      .leftJoinAndSelect('payment.model', 'model') // Join model data
+      .leftJoinAndSelect('model.modelOwner', 'modelOwner'); // Join model owner data
+  
+    // Apply filters
+    if (creatorName) {
+      query.andWhere('modelOwner.displayName ILIKE :creatorName', {
+        creatorName: `%${creatorName}%`,
+      });
+    }
+  
+    if (modelName) {
+      query.andWhere('model.title ILIKE :modelName', { modelName: `%${modelName}%` });
+    }
+  
+    if (startDate && endDate) {
+      query.andWhere('payment.purchasedAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      });
+    }
+  
+    // Fetch data
+    const transactions = await query.getMany();
+  
+    console.log('transactions', transactions);
+  
+    // Map data to desired format
+    return transactions.map((transaction) => ({
+      id: transaction.id,
+      creator: {
+        name: transaction.model.modelOwner.displayName, // Get the display name of the model owner
+        image: transaction.model.modelOwner.profilePicture || 'default-image-url', // Optional if profilePicture exists
+      },
+      invoice: transaction.id + 1000,
+      customer: {
+        name: `${transaction.user.firstName} ${transaction.user.lastName}`,
+        // image: transaction.user.profilePicture || 'default-image-url',
+      },
+      amount: transaction.amount,
+      status: transaction.status,
+    }));
+  }
+  
 }

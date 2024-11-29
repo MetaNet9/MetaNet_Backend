@@ -6,12 +6,16 @@ import { CreateVebxrmodelDto } from './dto/create-vebxrmodel.dto';
 import { UpdateVebxrmodelDto } from './dto/update-vebxrmodel.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Category } from 'src/category/category.entity';
+import { Seller } from 'src/seller/entities/seller.entity';
 
 @Injectable()
 export class VebxrmodelService {
   constructor(
     @InjectRepository(Vebxrmodel)
     private readonly vebxrmodelRepository: Repository<Vebxrmodel>,
+
+    @InjectRepository(Seller)
+    private readonly sellerRepository: Repository<Seller>,
 
     @InjectRepository(Category) // Inject Category repository here
     private readonly categoryRepository: Repository<Category>,
@@ -25,10 +29,11 @@ export class VebxrmodelService {
     if (!category) {
       throw new Error('Category not found'); 
     }
+    const seller = await this.sellerRepository.findOne({ where: { user: { id: userId } } });
     const vebxrModel = this.vebxrmodelRepository.create({
       ...createVebxrModelDto,
       category,              
-      modelOwner: userId,   
+      modelOwner: seller,   
     });
     return this.vebxrmodelRepository.save(vebxrModel);
   }

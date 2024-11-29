@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Double } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Category } from 'src/category/category.entity';
+import { Seller } from 'src/seller/entities/seller.entity';
 
 @Entity()
 export class Vebxrmodel {
@@ -17,7 +18,7 @@ export class Vebxrmodel {
 
   @ManyToOne(() => Category, (category) => category.models)
   @JoinColumn({ name: 'categoryId' }) // Optionally set a custom column name
-  category: Category; // Category relationship
+  category: Category;
 
   @Column()
   tags: string;
@@ -61,17 +62,16 @@ export class Vebxrmodel {
   @Column({ default: false })
   morphGeometry: boolean;
 
-  @Column()
-  modelOwner: number;
+  @ManyToOne(() => Seller, (seller) => seller.models, { nullable: false })
+  @JoinColumn({ name: 'modelOwnerId' }) // Custom column name
+  modelOwner: Seller;
 
   @Column({ type: 'float', default: 0 })
   price: number;
 
-  // total downloads
   @Column({ default: 0 })
   downloads: number;
 
-  // total likes
   @Column({ default: 0 })
   likes: number;
 

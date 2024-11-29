@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Transaction } from 'typeorm';
 import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
 import { Category } from 'src/category/category.entity';
 import { Payment } from 'src/payment/entities/payment.entity';
 import { User } from 'src/users/user.entity';
+import { Seller } from 'src/seller/entities/seller.entity';
 import { count } from 'console';
 
 @Injectable()
@@ -21,6 +22,13 @@ export class StatisticsService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
+    @InjectRepository(Seller) 
+    private readonly sellerRepository: Repository<Seller>,
+
+    // @Inject(forwardRef(() => Transaction))
+    // @InjectRepository(Transaction)
+    // private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
   // Get date range for the last month
@@ -170,6 +178,103 @@ export class StatisticsService {
         users: `${usersImprovement}%`,
         revenue: `${revenueImprovement}%`,
       }
+    };
+  }
+
+  async getRevenueData(startDate: string, endDate: string) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Total revenue: total payments * 20% (platform's revenue)
+    const totalPayments = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .where('payment.purchasedAt BETWEEN :start AND :end', { start, end })
+      .andWhere('payment.status = :status', { status: 'success' })
+      .select('SUM(payment.amount)', 'total')
+      .getRawOne();
+    const totalRevenue = (totalPayments?.total || 0) * 0.2;
+
+    // Total sales: count of unique sellers who made sales
+    const totalSales = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .where('payment.purchasedAt BETWEEN :start AND :end', { start, end })
+      .select('COUNT(payment.id)', 'count')
+      .getRawOne();
+    
+
+    // Total payouts: total count of transactions
+    // const totalPayouts = await this.transactionRepository
+    //   .createQueryBuilder('transaction')
+    //   .where('transaction.createdAt BETWEEN :start AND :end', { start, end })
+    //   .getCount();
+
+    // Total refunds: sum of refunded payment amounts
+    const totalRefunds = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .where('payment.purchasedAt BETWEEN :start AND :end', { start, end })
+      .andWhere('payment.status = :status', { status: 'refund' })
+      .select('SUM(payment.amount)', 'total')
+      .getRawOne();
+
+    // Average revenue: total of all payments * 80% / total sellers
+    const totalRevenueForSellers = (totalPayments?.total || 0) * 0.8;
+    const totalSellers = await this.sellerRepository.count();
+    const averageRevenue = totalSellers > 0 ? totalRevenueForSellers / totalSellers : 0;
+
+// most selling category
+    // const mostSellingCategory = await this.paymentRepository
+    // .createQueryBuilder('payment')
+    // .innerJoin('payment.model', 'model') // Join with Vebxrmodel
+    // .innerJoin('model.category', 'category') // Join with Category
+    // .select('category.id', 'categoryId') // Select Category ID
+    // .addSelect('category.name', 'categoryName') // Select Category Name
+    // .addSelect('COUNT(payment.id)', 'salesCount') // Count sales for each category
+    // .groupBy('category.id') // Group by category
+    // .orderBy('salesCount', 'DESC') // Order by sales count (descending)
+    // .limit(1) // Limit to the most selling category
+    // .getRawOne();
+
+
+    // Monthly revenue growth: (last month revenue / total revenue - last month revenue) * 100%
+    const today = new Date(); // Current date
+    const last30DaysStart = new Date(today); // Clone today's date
+    last30DaysStart.setDate(today.getDate() - 30);
+    today.setDate(today.getDate() + 1);
+
+    // Setting time explicitly for precision
+    last30DaysStart.setHours(0, 0, 0, 0); // Start of the day 30 days ago
+    today.setHours(23, 59, 59, 999); // End of today
+
+    const last30DaysPayments = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .where('payment.purchasedAt BETWEEN :start AND :end', {
+        start: last30DaysStart,
+        end: today,
+      })
+      .select('SUM(payment.amount)', 'total')
+      .getRawOne();
+
+    const totPayments = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .select('SUM(payment.amount)', 'total')
+      .getRawOne();
+
+
+    const lastMonthRevenue = (last30DaysPayments?.total || 0);
+    const finaltotalpayments = (totPayments?.total || 0);
+    const monthlyRevenueGrowth =
+    finaltotalpayments > 0
+        ? (lastMonthRevenue / (finaltotalpayments - lastMonthRevenue)) * 100
+        : 0;
+
+    return {
+      totalRevenue,
+      totalSales: totalSales?.count || 0,
+      // mostSellingCategory: mostSellingCategory.categoryName,
+      mostSellingCategory: "Character",
+      totalRefunds: totalRefunds?.total || 0,
+      averageRevenue,
+      monthlyRevenueGrowth,
     };
   }
 }

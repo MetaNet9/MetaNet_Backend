@@ -4,13 +4,17 @@ import { CreateVebxrmodelDto } from './dto/create-vebxrmodel.dto';
 import { UpdateVebxrmodelDto } from './dto/update-vebxrmodel.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Vebxrmodel } from './entities/vebxrmodel.entity';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { UserRole } from 'src/users/user.entity';
 
 @Controller('vebxrmodel')
 export class VebxrmodelController {
   constructor(private readonly vebxrmodelService: VebxrmodelService) {}
 
+  @Roles(UserRole.SELLER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
-  @UseGuards(JwtAuthGuard)
   create(@Body() createVebxrmodelDto: CreateVebxrmodelDto, @Req() req) {
     return this.vebxrmodelService.create(createVebxrmodelDto, req.user.userId);
   }
