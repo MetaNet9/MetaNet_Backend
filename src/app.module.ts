@@ -3,18 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './auth/guards/roles.guard';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { AdminController } from './admin/admin.controller';
-import { ModeratorManageController } from './moderator-manage/moderator-manage.controller';
-import { ModeratorManageService } from './moderator-manage/moderator-manage.service';
 import { ModeratorManageModule } from './moderator-manage/moderator-manage.module';
-import { UsersService } from './users/users.service';
-import { UsersModule } from './users/users.module';
 import { VebxrmodelModule } from './vebxrmodel/vebxrmodel.module';
 import { Vebxrmodel } from './vebxrmodel/entities/vebxrmodel.entity';
-import { FileUploadModule } from './file-upload/file-upload.module';
 import { CategoryModule } from './category/category.module';
 import { CategoryService } from './category/category.service';
 import { Category } from './category/category.entity';
@@ -27,6 +19,10 @@ import { PaymentModule } from './payment/payment.module';
 import { Seller } from './seller/entities/seller.entity';
 import { TransactionsModule } from './transaction/transaction.module';
 import { Transaction } from './transaction/entities/transaction.entity';
+import { ModelModule } from './model/model.module';
+import { ModelEntity } from './model/entities/model.entity';
+import { ReviewRequest } from './review_request/entities/review_request.entity';
+import { ReviewRequestModule } from './review_request/review_request.module';
 
 @Module({
   imports: [
@@ -37,20 +33,21 @@ import { Transaction } from './transaction/entities/transaction.entity';
       username: 'postgres',
       password: 'password',
       database: 'metanet',
-      entities: [User, Vebxrmodel, Category, Payment, Cart, Seller, Transaction],
+      entities: [User, Vebxrmodel, Category, Payment, Cart, Seller, Transaction, ModelEntity, ReviewRequest],
       synchronize: true,
     }),
     AuthModule,
     ConfigModule.forRoot(),
     ModeratorManageModule,
     VebxrmodelModule,
-    FileUploadModule,
     CategoryModule,
     CartModule,
     StatisticsModule,
     PaymentModule,
     SellerModule,
-    TransactionsModule
+    TransactionsModule,
+    ModelModule,
+    ReviewRequestModule
   ],
   
   providers: [

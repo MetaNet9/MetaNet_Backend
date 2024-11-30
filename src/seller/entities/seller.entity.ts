@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
-import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
+import { ModelEntity } from 'src/model/entities/model.entity';
 
 @Entity('seller')
 export class Seller {
@@ -48,12 +48,6 @@ export class Seller {
   @Column({ type: 'varchar', length: 15, nullable: true })
   contactNumber: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  email: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  password: string;
-
   @CreateDateColumn()
   createdAt: Date;
 
@@ -78,6 +72,6 @@ export class Seller {
   @OneToMany(() => Transaction, (transaction) => transaction.seller)
   transactions: Transaction[];
 
-  @OneToMany(() => Vebxrmodel, (model) => model.modelOwner)
-  models: Vebxrmodel[]; // Establish a one-to-many relationship with Vebxrmodel
+  @OneToMany(() => ModelEntity, (model) => model.seller)
+  models: ModelEntity[];
 }

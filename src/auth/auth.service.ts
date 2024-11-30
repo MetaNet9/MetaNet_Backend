@@ -6,6 +6,7 @@ import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserRole } from '../users/user.entity';
 import * as nodemailer from 'nodemailer';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -154,5 +155,66 @@ export class AuthService {
   async getUsersByRole(role: string, name: string, email: string, status: string) {
     const users = await this.usersService.getUsersByRole(role, name, email, status);
     return users;
+  }
+
+  async sendResetPasswordEmail(email: string) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('User with this email does not exist');
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // Token valid for 1 hour
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = resetTokenExpiry;
+
+    await this.usersService.update(user.id, user);
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `
+        <p>Hi ${user.firstName},</p>
+        <p>You requested a password reset. Click the link below to reset your password:</p>
+        <a href="${process.env.APP_URL}/auth/reset-password?token=${resetToken}">Reset Password</a>
+        <p>If you did not request this, please ignore this email.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return { message: 'Reset password email sent successfully' };
+  }
+
+  async verifyResetPasswordToken(token: string) {
+    const user = await this.usersService.findByResetToken(token);
+    if (!user || user.resetTokenExpiry < new Date()) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+    return { message: 'Token is valid', userId: user.id };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.usersService.findByResetToken(token);
+    if (!user || user.resetTokenExpiry < new Date()) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetToken = null;
+    user.resetTokenExpiry = null;
+
+    await this.usersService.update(user.id, user);
+
+    return { message: 'Password reset successfully' };
   }
 }
