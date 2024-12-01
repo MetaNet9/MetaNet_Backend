@@ -100,8 +100,6 @@ export class VebxrmodelService {
     const models = await this.VebxrmodelRepository.find({
       relations: ['modelOwner' , 'category'],
     });
-
-    console.log(models);
   
     return models.map((model) => ({
       id: model.id,

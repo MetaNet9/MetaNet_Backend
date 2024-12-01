@@ -9,10 +9,11 @@ import { Category } from 'src/category/category.entity';
 import { Seller } from 'src/seller/entities/seller.entity';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { TransactionsModule } from 'src/transaction/transaction.module'; // Import TransactionsModule
+import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Vebxrmodel, Payment, User, Category, Seller, Transaction]), // Register entities
+    TypeOrmModule.forFeature([Vebxrmodel, Payment, User, Category, Seller, Transaction, ReviewRequest]), // Register entities
     forwardRef(() => TransactionsModule), // Use forwardRef to resolve circular dependency
   ],
   providers: [StatisticsService],

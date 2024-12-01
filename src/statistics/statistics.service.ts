@@ -7,6 +7,7 @@ import { Payment } from 'src/payment/entities/payment.entity';
 import { User } from 'src/users/user.entity';
 import { Seller } from 'src/seller/entities/seller.entity';
 import { count } from 'console';
+import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
 
 @Injectable()
 export class StatisticsService {
@@ -25,6 +26,9 @@ export class StatisticsService {
 
     @InjectRepository(Seller) 
     private readonly sellerRepository: Repository<Seller>,
+
+    @InjectRepository(ReviewRequest)
+    private readonly reviewRequestRepository: Repository<ReviewRequest>,
 
     // @Inject(forwardRef(() => Transaction))
     // @InjectRepository(Transaction)
@@ -138,6 +142,65 @@ export class StatisticsService {
         endOfWeek,
       })
 
+    const moderatorsCount = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.roles LIKE :role', { role: `%moderator%` })
+      .getCount();
+
+    const sellersCount = await this.sellerRepository
+      .createQueryBuilder('seller')
+      .getCount();
+
+    // last week new sellers
+    const newSellersLastWeek = await this.sellerRepository
+      .createQueryBuilder('seller')
+      .where('seller.createdAt BETWEEN :startOfWeek AND :endOfWeek', {
+        startOfWeek,
+        endOfWeek,
+      })
+      .getCount();
+
+      const sellerImprovement = ((newSellersLastWeek / (sellersCount || 1)) * 100).toFixed(2);
+
+    // total review requests
+    const totalReviewRequests = await this.reviewRequestRepository
+      .createQueryBuilder('reviewRequest')
+      // .where('resoleved = :status', { status: false })
+      .getCount();
+
+    //last week total review requests
+    const newReviewRequestsLastWeek = await this.reviewRequestRepository
+      .createQueryBuilder('reviewRequest')
+      .where('reviewRequest.createdAt BETWEEN :startOfWeek AND :endOfWeek', {
+        startOfWeek,
+        endOfWeek,
+      })
+      .getCount();
+
+    //improment review request calculations
+    const reviewRequestImprovement = ((newReviewRequestsLastWeek / (totalReviewRequests || 1)) * 100).toFixed(2);
+
+    const totalCategories = await this.categoryRepository.count();
+
+    //total buyers get from payment table
+    const totalBuyers = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .select('COUNT(DISTINCT payment.userId)', 'totalBuyers')
+      .getRawOne();
+
+    //total buyers last week
+    const newBuyersLastWeek = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .select('COUNT(DISTINCT payment.userId)', 'newBuyersLastWeek')
+      .where('payment.purchasedAt BETWEEN :startOfWeek AND :endOfWeek', {
+        startOfWeek,
+        endOfWeek,
+      })
+      .getRawOne();
+
+    //total buyers improvement
+    const buyersImprovement = ((newBuyersLastWeek.newBuyersLastWeek / (totalBuyers.totalBuyers || 1)) * 100).toFixed(2);
+
     // :todo: Fix this
 
     const newUsersLastWeek = 2;
@@ -173,10 +236,18 @@ export class StatisticsService {
       lastWeekRevenue: lastWeekCategoryRevenue,
       newModelsLastWeek,
       newUsersLastWeek,
+      moderatorsCount,
+      sellersCount,
+      pendingRequests: totalReviewRequests,
+      totalCategories,
+      totalBuyers: totalBuyers.totalBuyers || 0,
       improvement: {
         models: `${modelsImprovement}%`,
         users: `${usersImprovement}%`,
         revenue: `${revenueImprovement}%`,
+        sellers: `${sellerImprovement}%`,
+        pendingRequests: `${reviewRequestImprovement}%`,
+        buyers: `${buyersImprovement}%`,
       }
     };
   }
