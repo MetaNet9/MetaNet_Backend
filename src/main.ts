@@ -12,7 +12,7 @@ async function bootstrap() {
     origin: 'http://localhost:4200',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
-    allowedHeaders: 'Content-Type, Authorization',
+    allowedHeaders: 'Content-Type, Authorization,access_token',
   });
   
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
