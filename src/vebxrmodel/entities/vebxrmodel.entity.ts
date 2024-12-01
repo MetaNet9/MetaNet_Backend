@@ -68,4 +68,7 @@ export class Vebxrmodel {
 
   @OneToOne(() => ModelEntity, (model) => model.vebxrModel, { nullable: true })
   model: ModelEntity; // Updated for consistency
+
+  @Column({ type: 'float', default: 0 })
+  review: number;
 }

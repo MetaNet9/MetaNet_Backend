@@ -31,9 +31,13 @@ export class AuthService {
   async login(user: any) {
     const payload = { email: user.email, sub: user.id, roles: user.roles };
     return {
-      access_token: this.jwtService.sign(payload, { secret: process.env.JWT_SECRET_KEY }),
+      access_token: this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET_KEY,
+        expiresIn: process.env.JWT_EXPIRATION_TIME || '1d', // Default to 1 day if not set
+      }),
     };
   }
+  
 
   async register(createUserDto: CreateUserDto) {
     const { firstName, lastName, email, password, roles, userName } = createUserDto;
