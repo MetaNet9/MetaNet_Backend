@@ -79,15 +79,15 @@ export class ReviewRequestService {
     return await this.reviewRequestRepository.remove(reviewRequest);
   }
 
-  async approveReviewRequest(id: number, moderatorUserId: number ): Promise<Vebxrmodel> {
+  async approveReviewRequest(id: number, userId: number ): Promise<Vebxrmodel> {
     const reviewRequest = await this.reviewRequestRepository.findOne({
       where: { id: id },
       relations: ['category', 'modelOwner'], // Load related entities
     });
 
-    const reviewUser = await this.userRepository.findOne({ where: { id: moderatorUserId } });
+    const reviewUser = await this.userRepository.findOne({ where: { id: userId } });
     console.log('reviewUser', id);
-    console.log('reviewRequest', moderatorUserId);
+    console.log('reviewRequest', userId);
   
     if (!reviewRequest) {
       throw new Error('Review request not found');
@@ -98,14 +98,9 @@ export class ReviewRequestService {
     }
 
     reviewRequest.resolved = true;
-    reviewRequest.reviewer = await this.userRepository.findOne({ where: { id: moderatorUserId } });
+    reviewRequest.reviewer = await this.userRepository.findOne({ where: { id: userId } });
     await this.reviewRequestRepository.save(reviewRequest);
-  
-    reviewRequest.resolved = true;
-
-    reviewRequest.reviewer = await this.userRepository.findOne({ where: { id: moderatorUserId } });
-    await this.reviewRequestRepository.save(reviewRequest);
-  
+ 
     const Vebxrmodel = this.VebxrmodelRepository.create({
       title: reviewRequest.title,
       description: reviewRequest.description,
@@ -125,7 +120,29 @@ export class ReviewRequestService {
       createdAt: new Date(),
     });
   
-    return this.VebxrmodelRepository.save(Vebxrmodel);
+    const savedModel = await this.VebxrmodelRepository.save(Vebxrmodel);
+
+    // send images to AI model
+    const response = fetch('http://127.0.0.1:5000/submit_ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        modelID: savedModel.id,
+        ImageUrls: [reviewRequest.image1Url, reviewRequest.image2Url, reviewRequest.image3Url],
+        description: reviewRequest.description,
+      }),
+    });
+
+    // if (response.ok) {
+    //   const data = await response.json(); 
+    //   console.log('Response Data:', data);
+    // } else {
+    //   console.error('Error:', response.status, response.statusText);
+    // }
+
+    return savedModel;
   }
 
   async declineReviewRequest(id: number, reviewNotes: string, userId: number) {

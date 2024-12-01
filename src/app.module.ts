@@ -23,6 +23,7 @@ import { ModelModule } from './model/model.module';
 import { ModelEntity } from './model/entities/model.entity';
 import { ReviewRequest } from './review_request/entities/review_request.entity';
 import { ReviewRequestModule } from './review_request/review_request.module';
+import { AidescribeModule } from './aidescribe/aidescribe.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { ReviewRequestModule } from './review_request/review_request.module';
     SellerModule,
     TransactionsModule,
     ModelModule,
-    ReviewRequestModule
+    ReviewRequestModule,
+    AidescribeModule
   ],
   
   providers: [

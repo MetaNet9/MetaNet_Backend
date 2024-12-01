@@ -37,13 +37,28 @@ export class VebxrmodelService {
       throw new Error('Seller not found');
     }
   
-    const Vebxrmodel = this.VebxrmodelRepository.create({
+    const savedvebxrmodel = await this.VebxrmodelRepository.save({
       ...createVebxrmodelDto,
       category,
       modelOwner: seller,
     });
+
+    // console.log('Saved Model:', savedvebxrmodel);
+
+    // send images to AI model
+    const response = fetch('http://127.0.0.1:5000/submit_ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        modelID: savedvebxrmodel.id,
+        ImageUrls: [createVebxrmodelDto.image1Url, createVebxrmodelDto.image2Url, createVebxrmodelDto.image3Url],
+        description: createVebxrmodelDto.description,
+      }),
+    });
   
-    return this.VebxrmodelRepository.save(Vebxrmodel);
+    return savedvebxrmodel;
   }
   
 

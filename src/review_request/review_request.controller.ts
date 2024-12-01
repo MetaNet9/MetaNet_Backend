@@ -76,7 +76,7 @@ export class ReviewRequestController {
   @Patch('accept/:id')
   async acceptReviewRequest(@Param('id') id: number, @Req() req) {
     try {
-      const userId = req.user.id; // Assuming `req.user` contains the authenticated user
+      const userId = req.user.userId; // Assuming `req.user` contains the authenticated user
       return await this.reviewRequestService.approveReviewRequest(id, userId);
     } catch (error) {
       console.error('Error accepting review request:', error);
