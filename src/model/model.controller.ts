@@ -56,6 +56,11 @@ export class ModelController {
         analysisResult,
       );
 
+      //delete saved model parameters valid
+      if (savedModel && savedModel.parameters && savedModel.parameters.Valid) {
+        delete savedModel.parameters.valid;
+      }
+
       // Step 4: Return the result to the frontend with access link
       const fileAccessUrl = `${process.env.APP_URL}/uploads/${savedFileName}`;
       return {
