@@ -107,4 +107,17 @@ export class ReviewRequestController {
       throw new InternalServerErrorException('Failed to decline review request.');
     }
   }
+
+  // make a get request
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.MODERATOR)
+  @Get()
+  async getReviewRequests() {
+    try {
+      return await this.reviewRequestService.getReviewRequests();
+    } catch (error) {
+      console.error('Error getting review requests:', error);
+      throw new InternalServerErrorException('Failed to get review requests.');
+    }
+  }
 }
