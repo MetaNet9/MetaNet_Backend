@@ -147,4 +147,11 @@ export class ReviewRequestService {
 
     return this.reviewRequestRepository.save(reviewRequest);
   }
+
+  async getReviewRequests() {
+    return await this.reviewRequestRepository.find({
+      relations: ['model', 'modelOwner'],
+      where: { resolved: false },
+    });
+  }
 }
