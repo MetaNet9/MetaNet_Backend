@@ -95,4 +95,33 @@ export class VebxrmodelService {
 
     return { data, total };
   }
+
+  async getFormattedModels() {
+    const models = await this.VebxrmodelRepository.find({
+      relations: ['modelOwner' , 'category'],
+    });
+
+    console.log(models);
+  
+    return models.map((model) => ({
+      id: model.id,
+      name: model.title,
+      user: {
+        name: model.modelOwner.displayName,
+        image: model.modelOwner.profilePicture || 'https://cdn.icon-icons.com/icons2/1378/PNG/512/avatardefault_92824.png',
+      },
+      image: model.image1Url,
+      category: model.category.name,
+      price: model.price,
+      reviews: model.review
+    }));
+  }
+
+  async findSellerModels(sellerId: number): Promise<Vebxrmodel[]> {
+    return this.VebxrmodelRepository.find({
+      where: { modelOwner: { id: sellerId } },
+    });
+  }
+  
+  
 }

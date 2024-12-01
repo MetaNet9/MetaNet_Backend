@@ -62,9 +62,14 @@ export class VebxrmodelController {
     return this.vebxrmodelService.findWithFilters(filters, page, pageSize);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.vebxrmodelService.findOne(+id);
+  @Get('modelsWithSellers')
+  findSellerModels() {
+    return this.vebxrmodelService.getFormattedModels();
   }
+
+  // @Get(':id')
+  // asyncfindOne(@Param('id') id: string) {
+  //   return this.vebxrmodelService.findOne(+id);
+  // }
 
 }
