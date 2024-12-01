@@ -82,7 +82,7 @@ export class ReviewRequestService {
   async approveReviewRequest(id: number, userId: number ): Promise<Vebxrmodel> {
     const reviewRequest = await this.reviewRequestRepository.findOne({
       where: { id: id },
-      relations: ['category', 'modelOwner'], // Load related entities
+      relations: ['category', 'modelOwner', 'model'], // Load related entities
     });
 
     const reviewUser = await this.userRepository.findOne({ where: { id: userId } });
@@ -117,6 +117,7 @@ export class ReviewRequestService {
       modelOwner: reviewRequest.modelOwner,
       downloads: 0,
       likes: 0,
+      model: reviewRequest.model,
       createdAt: new Date(),
     });
   

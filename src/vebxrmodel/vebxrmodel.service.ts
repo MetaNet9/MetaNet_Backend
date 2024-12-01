@@ -7,9 +7,11 @@ import { UpdateVebxrmodelDto } from './dto/update-Vebxrmodel.dto';
 import { Seller } from 'src/seller/entities/seller.entity';
 import { Category } from 'src/category/category.entity';
 import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
+import { ModelEntity } from 'src/model/entities/model.entity';
 
 @Injectable()
 export class VebxrmodelService {
+  
   constructor(
     @InjectRepository(Vebxrmodel)
     private readonly VebxrmodelRepository: Repository<Vebxrmodel>,
@@ -20,6 +22,9 @@ export class VebxrmodelService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
 
+    @InjectRepository(ModelEntity)
+    private readonly modelRepository: Repository<ModelEntity>,
+
   ) {}
   
 
@@ -27,9 +32,17 @@ export class VebxrmodelService {
     const category = await this.categoryRepository.findOne({
       where: { id: createVebxrmodelDto.category },
     });
-  
+
     if (!category) {
       throw new Error('Category not found');
+    }
+
+    const model = await this.modelRepository.findOne({
+      where: { id: createVebxrmodelDto.modelId },
+    });
+  
+    if (!model) {
+      throw new Error('Model not found');
     }
   
     const seller = await this.sellerRepository.findOne({ where: { user: { id: userId } } });
@@ -40,6 +53,7 @@ export class VebxrmodelService {
     const savedvebxrmodel = await this.VebxrmodelRepository.save({
       ...createVebxrmodelDto,
       category,
+      model,
       modelOwner: seller,
     });
 
@@ -136,5 +150,33 @@ export class VebxrmodelService {
     });
   }
   
+  async askFromAI(question: string, modelId: number) {
+
+    const model = await this.VebxrmodelRepository.findOne({ where: { id: modelId }, relations: ['model'] });
+    if (!model) {
+      throw new Error('Model not found');
+    }
+    console.log('Model:', model);
+
+    const jsonOfModel = JSON.stringify(model);
+    console.log('Model:', jsonOfModel);
+
+    const response = await fetch('http://127.0.0.1:5000/ask_ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        model: jsonOfModel,
+        question 
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+    throw new Error('AI model error');
+  }
   
 }

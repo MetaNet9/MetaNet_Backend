@@ -67,7 +67,8 @@ export class Vebxrmodel {
   createdAt: Date;
 
   @OneToOne(() => ModelEntity, (model) => model.vebxrModel, { nullable: true })
-  model: ModelEntity; // Updated for consistency
+  @JoinColumn({ name: 'model_id' })
+  model: ModelEntity;
 
   @Column({ type: 'float', default: 0 })
   review: number;

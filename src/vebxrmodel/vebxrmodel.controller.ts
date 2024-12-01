@@ -7,6 +7,7 @@ import { Vebxrmodel } from './entities/vebxrmodel.entity';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from 'src/users/user.entity';
+import { AskFromAIDto } from './dto/ask-from-ai.dto';
 
 @Controller('vebxrmodel')
 export class VebxrmodelController {
@@ -65,6 +66,12 @@ export class VebxrmodelController {
   @Get('modelsWithSellers')
   findSellerModels() {
     return this.vebxrmodelService.getFormattedModels();
+  }
+
+  @Post('askfromai')
+  askFromAI(@Body() askFromAIDto: AskFromAIDto) {
+    const { question, modelId } = askFromAIDto;
+    return this.vebxrmodelService.askFromAI(question, modelId);
   }
 
   // @Get(':id')
