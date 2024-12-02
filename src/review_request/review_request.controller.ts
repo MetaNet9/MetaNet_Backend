@@ -120,4 +120,14 @@ export class ReviewRequestController {
       throw new InternalServerErrorException('Failed to get review requests.');
     }
   }
+
+  @Get('moderator-dashboard')
+  async getModeratorDashboard() {
+    try {
+      return await this.reviewRequestService.getModeratorDashboard();
+    } catch (error) {
+      console.error('Error getting moderator dashboard:', error);
+      throw new InternalServerErrorException('Failed to get moderator dashboard.');
+    }
+  }
 }

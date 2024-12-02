@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Req } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import { ReviewRequest } from './entities/review_request.entity';
 import { Seller } from 'src/seller/entities/seller.entity';
 import { User } from 'src/users/user.entity';
@@ -50,6 +50,7 @@ export class ReviewRequestService {
 
       reviewRequest.modelOwner = seller;
       reviewRequest.model = model;
+      reviewRequest.updatedAt = new Date();
       return await this.reviewRequestRepository.save(reviewRequest);
     } catch (error) {
       console.log(error.message);
@@ -85,7 +86,7 @@ export class ReviewRequestService {
       relations: ['category', 'modelOwner', 'model'], // Load related entities
     });
 
-    const reviewUser = await this.userRepository.findOne({ where: { id: userId } });
+    // const reviewUser = await this.userRepository.findOne({ where: { id: userId } });
     console.log('reviewUser', id);
     console.log('reviewRequest', userId);
   
@@ -99,6 +100,7 @@ export class ReviewRequestService {
 
     reviewRequest.resolved = true;
     reviewRequest.reviewer = await this.userRepository.findOne({ where: { id: userId } });
+    reviewRequest.updatedAt = new Date();
     await this.reviewRequestRepository.save(reviewRequest);
  
     const Vebxrmodel = this.VebxrmodelRepository.create({
@@ -162,6 +164,7 @@ export class ReviewRequestService {
     reviewRequest.resolved = true;
     reviewRequest.reviewer = await this.userRepository.findOne({ where: { id: userId } });
     reviewRequest.rejected = true;
+    reviewRequest.updatedAt = new Date();
 
     return this.reviewRequestRepository.save(reviewRequest);
   }
@@ -172,4 +175,97 @@ export class ReviewRequestService {
       where: { resolved: false },
     });
   }
+
+  async getModeratorDashboard() {
+    const now = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(now.getDate() - 7);
+  
+    // Find total models not resolved
+    const totalReviewRequests = await this.reviewRequestRepository.count({ where: { resolved: false } });
+  
+    // Find total requests updated in the last 7 days
+    const totalReviewRequestsLastWeek = await this.reviewRequestRepository.count({
+      where: {
+        updatedAt: Between(sevenDaysAgo, now),
+      },
+    });
+  
+    // Find total models resolved
+    const totalResolvedReviewRequests = await this.reviewRequestRepository.count({ where: { resolved: true } });
+  
+    // Find total models rejected
+    const totalRejectedReviewRequests = await this.reviewRequestRepository.count({ where: { rejected: true } });
+  
+    // Find total models approved in the last 7 days
+    const totalApprovedLastWeek = await this.reviewRequestRepository.count({
+      where: {
+        resolved: true,
+        updatedAt: Between(sevenDaysAgo, now),
+      },
+    });
+  
+    // Find total models rejected in the last 7 days
+    const totalRejectedLastWeek = await this.reviewRequestRepository.count({
+      where: {
+        rejected: true,
+        updatedAt: Between(sevenDaysAgo, now),
+      },
+    });
+  
+    // Calculate improvement percentages
+    const improveofreject = totalRejectedReviewRequests > 0 
+      ? (totalRejectedLastWeek / totalRejectedReviewRequests) * 100 
+      : 0;
+  
+    const improveofapprove = totalResolvedReviewRequests > 0 
+      ? (totalApprovedLastWeek / totalResolvedReviewRequests) * 100 
+      : 0;
+  
+    // Make an array with resolved models count for the last 7 days
+    const resolvedCountsLast7Days = await Promise.all(
+      Array.from({ length: 7 }).map(async (_, i) => {
+        const startOfDay = new Date();
+        startOfDay.setDate(now.getDate() - i);
+        startOfDay.setHours(0, 0, 0, 0);
+  
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setHours(23, 59, 59, 999);
+  
+        const count = await this.reviewRequestRepository.count({
+          where: {
+            resolved: true,
+            updatedAt: Between(startOfDay, endOfDay),
+          },
+        });
+        return { date: startOfDay.toISOString().split('T')[0], count };
+      })
+    );
+  
+    // Contribution to resolve by different users
+    const userContributions = await this.reviewRequestRepository
+      .createQueryBuilder('reviewRequest')
+      .leftJoinAndSelect('reviewRequest.reviewer', 'user') // Join with User entity
+      .select('user.firstName', 'firstName')
+      .addSelect('COUNT(reviewRequest.id)', 'count')
+      .where('reviewRequest.resolved = :resolved', { resolved: true })
+      .groupBy('user.firstName')
+      .orderBy('count', 'DESC')
+      .getRawMany();
+
+  
+    return {
+      totalReviewRequests,
+      totalReviewRequestsLastWeek,
+      totalResolvedReviewRequests,
+      totalRejectedReviewRequests,
+      totalApprovedLastWeek,
+      totalRejectedLastWeek,
+      improveofreject,
+      improveofapprove,
+      resolvedCountsLast7Days,
+      userContributions,
+    };
+  }  
+  
 }
