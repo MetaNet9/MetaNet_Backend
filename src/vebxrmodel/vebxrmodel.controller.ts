@@ -25,23 +25,16 @@ export class VebxrmodelController {
     return this.vebxrmodelService.findAll();
   }
 
-  // get a model by id
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne( @Req() req, @Param('id') id: string) {
-    const userId = req.user.userId;
-    return this.vebxrmodelService.findModel(+id, userId);
-  }
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateVebxrmodelDto: UpdateVebxrmodelDto) {
   //   return this.vebxrmodelService.update(+id, updateVebxrmodelDto);
   // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.vebxrmodelService.remove(+id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.vebxrmodelService.remove(+id);
+  // }
 
   @Get('findWithFilters')
   async findWithFilters(
@@ -114,6 +107,14 @@ export class VebxrmodelController {
   askFromAI(@Body() askFromAIDto: AskFromAIDto) {
     const { question, modelId } = askFromAIDto;
     return this.vebxrmodelService.askFromAI(question, modelId);
+  }
+
+  // get a model by id
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async findOneId( @Req() req, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.vebxrmodelService.findModel(+id, userId);
   }
 
   // @Get(':id')
