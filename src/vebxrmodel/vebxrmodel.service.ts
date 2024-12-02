@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Not, Repository } from 'typeorm';
 import { Vebxrmodel } from './entities/Vebxrmodel.entity';
@@ -309,5 +309,47 @@ export class VebxrmodelService {
     };
   }
   
+  async searchWithAI(query: string): Promise<any[]> {
+    try {
+      
+      // Send the query to the AI search service
+      const response = await fetch('http://127.0.0.1:5000/get_results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch AI search results');
+      }
+  
+      // Parse the JSON response
+      const searchResults = await response.json();
+  
+      // Replace the modelID with the actual model details
+      const enrichedResults = await Promise.all(
+        searchResults.map(async (result) => {
+          const model = await this.VebxrmodelRepository.findOne({
+            where: { id: result.modelID },
+          });
+  
+          if (model) {
+            return {
+              ...result,
+              model,
+            };
+          }
+  
+          return result;
+        })
+      );
+  
+      return enrichedResults;
+    } catch (error) {
+      throw new HttpException('AI search service error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }    
   
 }

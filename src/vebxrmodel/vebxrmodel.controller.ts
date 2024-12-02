@@ -25,6 +25,13 @@ export class VebxrmodelController {
     return this.vebxrmodelService.findAll();
   }
 
+  // get query from body and ask from ai
+  @Post('searchwithAi')
+  searchWithAI(@Body() query) {
+    console.log('query', query.query);
+    return this.vebxrmodelService.searchWithAI(query.query);
+  }
+
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateVebxrmodelDto: UpdateVebxrmodelDto) {
