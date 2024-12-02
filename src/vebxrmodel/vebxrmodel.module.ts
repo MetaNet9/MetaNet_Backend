@@ -8,10 +8,11 @@ import { CategoryModule } from 'src/category/category.module';
 import { Seller } from 'src/seller/entities/seller.entity';
 import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
 import { ModelEntity } from 'src/model/entities/model.entity';
+import { UserLikes } from 'src/userlikes/entities/userlike.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Vebxrmodel, Category, Seller, ReviewRequest, ModelEntity])
+    TypeOrmModule.forFeature([Vebxrmodel, Category, Seller, ReviewRequest, ModelEntity, UserLikes]),
   ],
   controllers: [VebxrmodelController],
   providers: [VebxrmodelService],

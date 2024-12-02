@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Vebxrmodel } from './entities/Vebxrmodel.entity';
 import { CreateVebxrmodelDto } from './dto/create-Vebxrmodel.dto';
 import { UpdateVebxrmodelDto } from './dto/update-Vebxrmodel.dto';
@@ -8,6 +8,7 @@ import { Seller } from 'src/seller/entities/seller.entity';
 import { Category } from 'src/category/category.entity';
 import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
 import { ModelEntity } from 'src/model/entities/model.entity';
+import { UserLikes } from 'src/userlikes/entities/userlike.entity';
 
 @Injectable()
 export class VebxrmodelService {
@@ -24,6 +25,9 @@ export class VebxrmodelService {
 
     @InjectRepository(ModelEntity)
     private readonly modelRepository: Repository<ModelEntity>,
+
+    @InjectRepository(UserLikes)
+    private readonly userLikesRepository: Repository<UserLikes>,
 
   ) {}
   
@@ -49,11 +53,14 @@ export class VebxrmodelService {
     if (!seller) {
       throw new Error('Seller not found');
     }
+
+    const format = createVebxrmodelDto.format.toUpperCase();
   
     const savedvebxrmodel = await this.VebxrmodelRepository.save({
       ...createVebxrmodelDto,
       category,
       model,
+      format,
       modelOwner: seller,
     });
 
@@ -124,6 +131,66 @@ export class VebxrmodelService {
 
     return { data, total };
   }
+
+  async findWithFiltersandLikes(
+    filters: {
+      category?: number;
+      minPrice?: number;
+      maxPrice?: number;
+      format?: string;
+      license?: string;
+    },
+    userId: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{ data: (Vebxrmodel & { isUserLiked: boolean })[]; total: number }> {
+    const query = this.VebxrmodelRepository.createQueryBuilder('model');
+  
+    if (filters.category !== undefined && !isNaN(filters.category)) {
+      query.andWhere('model.category = :category', { category: filters.category });
+    }
+    if (filters.minPrice !== undefined && !isNaN(filters.minPrice)) {
+      query.andWhere('model.price >= :minPrice', { minPrice: filters.minPrice });
+    }
+    if (filters.maxPrice !== undefined && !isNaN(filters.maxPrice)) {
+      query.andWhere('model.price <= :maxPrice', { maxPrice: filters.maxPrice });
+    }
+    if (filters.format) {
+      query.andWhere('model.format = :format', { format: filters.format });
+    }
+    if (filters.license) {
+      query.andWhere('model.license = :license', { license: filters.license });
+    }
+  
+    // Fetch paginated models
+    const [models, total] = await query
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+
+      // const existingLike = await this.userLikesRepository.findOne({
+      //   where: { user: { id: userId }, model: { id: modelId } },
+      // });
+  
+    // Fetch likes for the user and models
+    const likedModelIds = await this.userLikesRepository
+      .createQueryBuilder('like')
+      .select('like.model.id')
+      .where('like.user.id = :userId', { userId })
+      .andWhere('like.model.id IN (:...modelIds)', { modelIds: models.map((m) => m.id) })
+      .getRawMany();
+  
+    const likedModelIdSet = new Set(likedModelIds.map((like) => like.like_modelId));
+  
+    // Add `isUserLiked` flag to each model
+    const data = models.map((model) => ({
+      ...model,
+      isUserLiked: likedModelIdSet.has(model.id),
+    }));
+  
+    return { data, total };
+  }
+  
 
   async getFormattedModels() {
     const models = await this.VebxrmodelRepository.find({

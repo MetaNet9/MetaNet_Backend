@@ -6,10 +6,12 @@ import {
   OneToOne,
   CreateDateColumn,
   JoinColumn,
+  OneToMany
 } from 'typeorm';
 import { Seller } from 'src/seller/entities/seller.entity';
 import { Category } from 'src/category/category.entity';
 import { ModelEntity } from 'src/model/entities/model.entity';
+import { UserLikes } from 'src/userlikes/entities/userlike.entity';
 
 @Entity()
 export class Vebxrmodel {
@@ -57,7 +59,7 @@ export class Vebxrmodel {
   downloads: number;
 
   @Column({ default: 0 })
-  likes: number;
+  likesCount: number;
 
   @ManyToOne(() => Seller, (seller) => seller.models, { nullable: false })
   @JoinColumn({ name: 'model_owner_id' })
@@ -69,6 +71,9 @@ export class Vebxrmodel {
   @OneToOne(() => ModelEntity, (model) => model.vebxrModel, { nullable: true })
   @JoinColumn({ name: 'model_id' })
   model: ModelEntity;
+
+  @OneToMany(() => UserLikes, (userLikes) => userLikes.model)
+  likes: UserLikes[];
 
   @Column({ type: 'float', default: 0 })
   review: number;

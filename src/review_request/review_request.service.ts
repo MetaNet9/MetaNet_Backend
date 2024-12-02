@@ -112,11 +112,11 @@ export class ReviewRequestService {
       tags: reviewRequest.tags,
       downloadType: reviewRequest.downloadType,
       license: reviewRequest.license,
-      format: reviewRequest.format,
+      format: reviewRequest.format.toLocaleUpperCase(),
       price: reviewRequest.price,
       modelOwner: reviewRequest.modelOwner,
       downloads: 0,
-      likes: 0,
+      likesCount: 0,
       model: reviewRequest.model,
       createdAt: new Date(),
     });

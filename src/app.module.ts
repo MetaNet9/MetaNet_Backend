@@ -24,6 +24,8 @@ import { ModelEntity } from './model/entities/model.entity';
 import { ReviewRequest } from './review_request/entities/review_request.entity';
 import { ReviewRequestModule } from './review_request/review_request.module';
 import { AidescribeModule } from './aidescribe/aidescribe.module';
+import { UserlikesModule } from './userlikes/userlikes.module';
+import { UserLikes } from './userlikes/entities/userlike.entity';
 
 @Module({
   imports: [
@@ -34,7 +36,7 @@ import { AidescribeModule } from './aidescribe/aidescribe.module';
       username: 'postgres',
       password: 'password',
       database: 'metanet',
-      entities: [User, Vebxrmodel, Category, Payment, Cart, Seller, Transaction, ModelEntity, ReviewRequest],
+      entities: [User, Vebxrmodel, Category, Payment, Cart, Seller, Transaction, ModelEntity, ReviewRequest, UserLikes],
       synchronize: true,
     }),
     AuthModule,
@@ -49,7 +51,8 @@ import { AidescribeModule } from './aidescribe/aidescribe.module';
     TransactionsModule,
     ModelModule,
     ReviewRequestModule,
-    AidescribeModule
+    AidescribeModule,
+    UserlikesModule
   ],
   
   providers: [
