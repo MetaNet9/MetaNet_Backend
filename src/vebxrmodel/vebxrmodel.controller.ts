@@ -25,6 +25,14 @@ export class VebxrmodelController {
     return this.vebxrmodelService.findAll();
   }
 
+  // get a model by id
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne( @Req() req, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.vebxrmodelService.findModel(+id, userId);
+  }
+
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateVebxrmodelDto: UpdateVebxrmodelDto) {
   //   return this.vebxrmodelService.update(+id, updateVebxrmodelDto);
@@ -109,7 +117,7 @@ export class VebxrmodelController {
   }
 
   // @Get(':id')
-  // asyncfindOne(@Param('id') id: string) {
+  // findOne(@Param('id') id: string) {
   //   return this.vebxrmodelService.findOne(+id);
   // }
 

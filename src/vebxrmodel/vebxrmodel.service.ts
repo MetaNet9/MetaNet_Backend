@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { Vebxrmodel } from './entities/Vebxrmodel.entity';
 import { CreateVebxrmodelDto } from './dto/create-Vebxrmodel.dto';
 import { UpdateVebxrmodelDto } from './dto/update-Vebxrmodel.dto';
@@ -9,6 +9,7 @@ import { Category } from 'src/category/category.entity';
 import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
 import { ModelEntity } from 'src/model/entities/model.entity';
 import { UserLikes } from 'src/userlikes/entities/userlike.entity';
+import { Payment } from 'src/payment/entities/payment.entity';
 
 @Injectable()
 export class VebxrmodelService {
@@ -28,6 +29,9 @@ export class VebxrmodelService {
 
     @InjectRepository(UserLikes)
     private readonly userLikesRepository: Repository<UserLikes>,
+
+    @InjectRepository(Payment)
+    private readonly paymentRepository: Repository<Payment>,
 
   ) {}
   
@@ -258,5 +262,52 @@ export class VebxrmodelService {
     }
     throw new Error('AI model error');
   }
+
+  async findModel(id: number, userId: number): Promise<any> {
+    // Fetch the model data
+    const model = await this.VebxrmodelRepository.findOne({ 
+      where: { id }, 
+      relations: ['modelOwner', 'category', 'model'] 
+    });
+  
+    if (!model) {
+      throw new Error('Model not found');
+    }
+  
+    // Check if the model is bought by the user
+    const BoughtData = await this.paymentRepository.findOne({
+      where: { model: { id }, user: { id: userId } },
+    });
+
+    const isBought = !!BoughtData;
+  
+    // Check if the model is liked by the user
+    const LikedData = await this.userLikesRepository.findOne({
+      where: { model: { id }, user: { id: userId } },
+    });
+
+    const isLiked = !!LikedData;
+  
+    // Fetch reviews for the model
+    const reviews = await this.paymentRepository.find({
+      where: { model: { id }, reviewMessage: Not(IsNull()) },
+    });
+  
+    // Check if the user has reviewed the model
+    const reviewedData = await this.paymentRepository.findOne({
+      where: { model: { id }, user: { id: userId }, reviewMessage: Not(IsNull()) },
+    });
+
+    const amIreviewed = !!reviewedData;
+  
+    return {
+      model,
+      isBought,
+      isLiked,
+      reviews,
+      amIreviewed,
+    };
+  }
+  
   
 }
