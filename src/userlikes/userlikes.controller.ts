@@ -1,28 +1,31 @@
 import { Controller, Post, Delete, Param, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
 import { UserLikesService } from './userlikes.service'; 
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { HttpStatus } from '@nestjs/common';
 
 @Controller('likes')
 export class UserLikesController {
   constructor(private readonly userLikesService: UserLikesService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post(':modelId')
+  @Post('like/:modelId')
   async likeModel(
     @Req() req,
     @Param('modelId', ParseIntPipe) modelId: number,
-  ): Promise<string> {
+  ): Promise<{ status: number; message: string }> {
     const userId = req.user.userId;
-    return this.userLikesService.likeModel(userId, modelId);
+    const response = await this.userLikesService.likeModel(userId, modelId);
+    return { status: HttpStatus.OK, message: response };
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':modelId')
+  @Post('dislike/:modelId')
   async unlikeModel(
     @Req() req,
     @Param('modelId', ParseIntPipe) modelId: number,
-  ): Promise<string> {
+  ): Promise<{ status: number; message: string }> {
     const userId = req.user.userId;
-    return this.userLikesService.unlikeModel(userId, modelId);
+    const response = await this.userLikesService.unlikeModel(userId, modelId);
+    return { status: HttpStatus.OK, message: response };
   }
 }

@@ -77,6 +77,7 @@ export class VebxrmodelController {
     @Query('rigged') rigged?: any,
     @Query('page') page: any = 1,
     @Query('pageSize') pageSize: any = 10,
+    @Query('keyword') keyword?: any,
   ): Promise<{ data: Vebxrmodel[]; total: any }> {
 
     const userId = req.user.userId;
@@ -87,6 +88,7 @@ export class VebxrmodelController {
       maxPrice: maxPrice && !isNaN(parseFloat(maxPrice)) ? parseFloat(maxPrice) : undefined,
       format,
       license,
+      keyword,
       pbr: pbr === 'true',
       animated: animated === 'true',
       rigged: rigged === 'true',

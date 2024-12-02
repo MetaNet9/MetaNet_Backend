@@ -139,6 +139,7 @@ export class VebxrmodelService {
       maxPrice?: number;
       format?: string;
       license?: string;
+      keyword?: string;  // Added keyword to the filter type
     },
     userId: number,
     page: number = 1,
@@ -146,20 +147,36 @@ export class VebxrmodelService {
   ): Promise<{ data: (Vebxrmodel & { isUserLiked: boolean })[]; total: number }> {
     const query = this.VebxrmodelRepository.createQueryBuilder('model');
   
+    // Filter by category if provided
     if (filters.category !== undefined && !isNaN(filters.category)) {
       query.andWhere('model.category = :category', { category: filters.category });
     }
+  
+    // Filter by minimum price if provided
     if (filters.minPrice !== undefined && !isNaN(filters.minPrice)) {
       query.andWhere('model.price >= :minPrice', { minPrice: filters.minPrice });
     }
+  
+    // Filter by maximum price if provided
     if (filters.maxPrice !== undefined && !isNaN(filters.maxPrice)) {
       query.andWhere('model.price <= :maxPrice', { maxPrice: filters.maxPrice });
     }
+  
+    // Filter by format if provided
     if (filters.format) {
       query.andWhere('model.format = :format', { format: filters.format });
     }
+  
+    // Filter by license if provided
     if (filters.license) {
       query.andWhere('model.license = :license', { license: filters.license });
+    }
+  
+    // Filter by keyword in the model title if provided
+    if (filters.keyword) {
+      query.andWhere('model.title ILIKE :keyword', {  // Use ILIKE for case-insensitive search in PostgreSQL
+        keyword: `%${filters.keyword}%`,  // Ensures wildcard is correctly added
+      });
     }
   
     // Fetch paginated models
@@ -167,10 +184,6 @@ export class VebxrmodelService {
       .skip((page - 1) * pageSize)
       .take(pageSize)
       .getManyAndCount();
-
-      // const existingLike = await this.userLikesRepository.findOne({
-      //   where: { user: { id: userId }, model: { id: modelId } },
-      // });
   
     // Fetch likes for the user and models
     const likedModelIds = await this.userLikesRepository
@@ -189,7 +202,7 @@ export class VebxrmodelService {
     }));
   
     return { data, total };
-  }
+  }  
   
 
   async getFormattedModels() {
