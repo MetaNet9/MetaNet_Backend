@@ -1,6 +1,7 @@
 // users/user.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn  } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, OneToMany  } from 'typeorm';
 import { Seller } from 'src/seller/entities/seller.entity';
+import { UserLikes } from 'src/userlikes/entities/userlike.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -57,6 +58,9 @@ export class User {
 
   @Column({ nullable: true })
   resetToken: string;
+
+  @OneToMany(() => UserLikes, (userLikes) => userLikes.user)
+  likes: UserLikes[];
 
   @Column({ type: 'timestamp', nullable: true })
   resetTokenExpiry: Date;

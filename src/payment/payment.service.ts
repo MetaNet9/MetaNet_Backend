@@ -68,6 +68,9 @@ export class PaymentService {
       where: { user: { id: userId }, model: { id: modelId } },
     });
 
+    console.log('reviewMessage', reviewMessage);
+    console.log('reviewStars', reviewStars);
+
     if (!purchase) {
       throw new Error('Purchase not found or user does not own this item.');
     }

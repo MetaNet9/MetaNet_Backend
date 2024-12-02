@@ -110,7 +110,7 @@ export class StatisticsService {
 
     const totalLikes = await this.vebxrmodelRepository
       .createQueryBuilder('model')
-      .select('SUM(model.likes)', 'totalLikes')
+      .select('SUM(model.likesCount)', 'totalLikes')
       .getRawOne();
 
     const totalDownloads = await this.vebxrmodelRepository
@@ -121,7 +121,7 @@ export class StatisticsService {
     const mostPopularModel = await this.vebxrmodelRepository
       .createQueryBuilder('model')
       .orderBy('model.downloads', 'DESC')
-      .addOrderBy('model.likes', 'DESC')
+      .addOrderBy('model.likesCount', 'DESC')
       .getOne();
 
     // Last week's statistics

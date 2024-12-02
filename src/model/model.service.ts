@@ -44,13 +44,15 @@ export class ModelService {
     if (!seller) {
       throw new Error(`Seller for User with ID ${userId} not found`);
     }
+
+    console.log(validationResult);
   
     // Create and save the model entity
     const model = this.modelRepository.create({
       seller,
       fileName,
       parameters: validationResult.parameters || validationResult,
-      valid: validationResult.valid ?? false, // Use nullish coalescing operator for boolean defaults
+      valid: validationResult.Valid[1] ?? false, // Use nullish coalescing operator for boolean defaults
     });
   
     return this.modelRepository.save(model);

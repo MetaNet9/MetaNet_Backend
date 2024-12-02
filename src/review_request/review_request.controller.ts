@@ -76,7 +76,7 @@ export class ReviewRequestController {
   @Patch('accept/:id')
   async acceptReviewRequest(@Param('id') id: number, @Req() req) {
     try {
-      const userId = req.user.id; // Assuming `req.user` contains the authenticated user
+      const userId = req.user.userId; // Assuming `req.user` contains the authenticated user
       return await this.reviewRequestService.approveReviewRequest(id, userId);
     } catch (error) {
       console.error('Error accepting review request:', error);
@@ -105,6 +105,29 @@ export class ReviewRequestController {
         throw new NotFoundException('Review request not found.');
       }
       throw new InternalServerErrorException('Failed to decline review request.');
+    }
+  }
+
+  // make a get request
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.MODERATOR)
+  @Get()
+  async getReviewRequests() {
+    try {
+      return await this.reviewRequestService.getReviewRequests();
+    } catch (error) {
+      console.error('Error getting review requests:', error);
+      throw new InternalServerErrorException('Failed to get review requests.');
+    }
+  }
+
+  @Get('moderator-dashboard')
+  async getModeratorDashboard() {
+    try {
+      return await this.reviewRequestService.getModeratorDashboard();
+    } catch (error) {
+      console.error('Error getting moderator dashboard:', error);
+      throw new InternalServerErrorException('Failed to get moderator dashboard.');
     }
   }
 }

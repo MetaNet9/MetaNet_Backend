@@ -79,5 +79,8 @@ import { ModelEntity } from 'src/model/entities/model.entity';
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @CreateDateColumn()
+    updatedAt: Date;
   }
   

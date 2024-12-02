@@ -1,15 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { Vebxrmodel } from './entities/Vebxrmodel.entity';
 import { CreateVebxrmodelDto } from './dto/create-Vebxrmodel.dto';
 import { UpdateVebxrmodelDto } from './dto/update-Vebxrmodel.dto';
 import { Seller } from 'src/seller/entities/seller.entity';
 import { Category } from 'src/category/category.entity';
 import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
+import { ModelEntity } from 'src/model/entities/model.entity';
+import { UserLikes } from 'src/userlikes/entities/userlike.entity';
+import { Payment } from 'src/payment/entities/payment.entity';
 
 @Injectable()
 export class VebxrmodelService {
+  
   constructor(
     @InjectRepository(Vebxrmodel)
     private readonly VebxrmodelRepository: Repository<Vebxrmodel>,
@@ -20,6 +24,15 @@ export class VebxrmodelService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
 
+    @InjectRepository(ModelEntity)
+    private readonly modelRepository: Repository<ModelEntity>,
+
+    @InjectRepository(UserLikes)
+    private readonly userLikesRepository: Repository<UserLikes>,
+
+    @InjectRepository(Payment)
+    private readonly paymentRepository: Repository<Payment>,
+
   ) {}
   
 
@@ -27,23 +40,50 @@ export class VebxrmodelService {
     const category = await this.categoryRepository.findOne({
       where: { id: createVebxrmodelDto.category },
     });
-  
+
     if (!category) {
       throw new Error('Category not found');
+    }
+
+    const model = await this.modelRepository.findOne({
+      where: { id: createVebxrmodelDto.modelId },
+    });
+  
+    if (!model) {
+      throw new Error('Model not found');
     }
   
     const seller = await this.sellerRepository.findOne({ where: { user: { id: userId } } });
     if (!seller) {
       throw new Error('Seller not found');
     }
+
+    const format = createVebxrmodelDto.format.toUpperCase();
   
-    const Vebxrmodel = this.VebxrmodelRepository.create({
+    const savedvebxrmodel = await this.VebxrmodelRepository.save({
       ...createVebxrmodelDto,
       category,
+      model,
+      format,
       modelOwner: seller,
     });
+
+    // console.log('Saved Model:', savedvebxrmodel);
+
+    // send images to AI model
+    const response = fetch('http://127.0.0.1:5000/submit_ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        modelID: savedvebxrmodel.id,
+        ImageUrls: [createVebxrmodelDto.image1Url, createVebxrmodelDto.image2Url, createVebxrmodelDto.image3Url],
+        description: createVebxrmodelDto.description,
+      }),
+    });
   
-    return this.VebxrmodelRepository.save(Vebxrmodel);
+    return savedvebxrmodel;
   }
   
 
@@ -96,6 +136,79 @@ export class VebxrmodelService {
     return { data, total };
   }
 
+  async findWithFiltersandLikes(
+    filters: {
+      category?: number;
+      minPrice?: number;
+      maxPrice?: number;
+      format?: string;
+      license?: string;
+      keyword?: string;  // Added keyword to the filter type
+    },
+    userId: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<{ data: (Vebxrmodel & { isUserLiked: boolean })[]; total: number }> {
+    const query = this.VebxrmodelRepository.createQueryBuilder('model');
+  
+    // Filter by category if provided
+    if (filters.category !== undefined && !isNaN(filters.category)) {
+      query.andWhere('model.category = :category', { category: filters.category });
+    }
+  
+    // Filter by minimum price if provided
+    if (filters.minPrice !== undefined && !isNaN(filters.minPrice)) {
+      query.andWhere('model.price >= :minPrice', { minPrice: filters.minPrice });
+    }
+  
+    // Filter by maximum price if provided
+    if (filters.maxPrice !== undefined && !isNaN(filters.maxPrice)) {
+      query.andWhere('model.price <= :maxPrice', { maxPrice: filters.maxPrice });
+    }
+  
+    // Filter by format if provided
+    if (filters.format) {
+      query.andWhere('model.format = :format', { format: filters.format });
+    }
+  
+    // Filter by license if provided
+    if (filters.license) {
+      query.andWhere('model.license = :license', { license: filters.license });
+    }
+  
+    // Filter by keyword in the model title if provided
+    if (filters.keyword) {
+      query.andWhere('model.title ILIKE :keyword', {  // Use ILIKE for case-insensitive search in PostgreSQL
+        keyword: `%${filters.keyword}%`,  // Ensures wildcard is correctly added
+      });
+    }
+  
+    // Fetch paginated models
+    const [models, total] = await query
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
+  
+    // Fetch likes for the user and models
+    const likedModelIds = await this.userLikesRepository
+      .createQueryBuilder('like')
+      .select('like.model.id')
+      .where('like.user.id = :userId', { userId })
+      .andWhere('like.model.id IN (:...modelIds)', { modelIds: models.map((m) => m.id) })
+      .getRawMany();
+  
+    const likedModelIdSet = new Set(likedModelIds.map((like) => like.like_modelId));
+  
+    // Add `isUserLiked` flag to each model
+    const data = models.map((model) => ({
+      ...model,
+      isUserLiked: likedModelIdSet.has(model.id),
+    }));
+  
+    return { data, total };
+  }  
+  
+
   async getFormattedModels() {
     const models = await this.VebxrmodelRepository.find({
       relations: ['modelOwner' , 'category'],
@@ -121,5 +234,122 @@ export class VebxrmodelService {
     });
   }
   
+  async askFromAI(question: string, modelId: number) {
+
+    const model = await this.VebxrmodelRepository.findOne({ where: { id: modelId }, relations: ['model'] });
+    if (!model) {
+      throw new Error('Model not found');
+    }
+    console.log('Model:', model);
+
+    const jsonOfModel = JSON.stringify(model);
+    console.log('Model:', jsonOfModel);
+
+    const response = await fetch('http://127.0.0.1:5000/ask_ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        model: jsonOfModel,
+        question 
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+    throw new Error('AI model error');
+  }
+
+  async findModel(id: number, userId: number): Promise<any> {
+    // Fetch the model data
+    const model = await this.VebxrmodelRepository.findOne({ 
+      where: { id }, 
+      relations: ['modelOwner', 'category', 'model'] 
+    });
+  
+    if (!model) {
+      throw new Error('Model not found');
+    }
+  
+    // Check if the model is bought by the user
+    const BoughtData = await this.paymentRepository.findOne({
+      where: { model: { id }, user: { id: userId } },
+    });
+
+    const isBought = !!BoughtData;
+  
+    // Check if the model is liked by the user
+    const LikedData = await this.userLikesRepository.findOne({
+      where: { model: { id }, user: { id: userId } },
+    });
+
+    const isLiked = !!LikedData;
+  
+    // Fetch reviews for the model
+    const reviews = await this.paymentRepository.find({
+      where: { model: { id }, reviewMessage: Not(IsNull()) },
+    });
+  
+    // Check if the user has reviewed the model
+    const reviewedData = await this.paymentRepository.findOne({
+      where: { model: { id }, user: { id: userId }, reviewMessage: Not(IsNull()) },
+    });
+
+    const amIreviewed = !!reviewedData;
+  
+    return {
+      model,
+      isBought,
+      isLiked,
+      reviews,
+      amIreviewed,
+    };
+  }
+  
+  async searchWithAI(query: string): Promise<any[]> {
+    try {
+      
+      // Send the query to the AI search service
+      const response = await fetch('http://127.0.0.1:5000/get_results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch AI search results');
+      }
+  
+      // Parse the JSON response
+      const searchResults = await response.json();
+  
+      // Replace the modelID with the actual model details
+      const enrichedResults = await Promise.all(
+        searchResults.map(async (result) => {
+          const model = await this.VebxrmodelRepository.findOne({
+            where: { id: result.modelID },
+          });
+  
+          if (model) {
+            return {
+              ...result,
+              model,
+            };
+          }
+  
+          return result;
+        })
+      );
+  
+      return enrichedResults;
+    } catch (error) {
+      throw new HttpException('AI search service error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }    
   
 }
