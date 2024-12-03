@@ -22,7 +22,7 @@ export class AuthController {
         throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
       }
       const token = await this.authService.login(user);
-      res.cookie('access_token', token.access_token, { httpOnly: true,sameSite: 'none',secure:true, path: '/', maxAge: 60 * 60 * 1000 }); // Set the cookie
+      res.cookie('access_token', token.access_token, { httpOnly: true,sameSite: 'none',secure:true, path: '/', maxAge: 24 * 60 * 60 * 1000 }); // Set the cookie
       return res.send({ success: true ,details: user});
     } catch (error) {
       throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
@@ -186,6 +186,22 @@ export class AuthController {
   ) {
     try {
       const response = await this.authService.resetPassword(token, newPassword);
+      return res.send(response);
+    } catch (error) {
+      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Request() req,
+    @Body('oldPassword') oldPassword: string,
+    @Body('newPassword') newPassword: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const response = await this.authService.changePassword(req.user.userId, oldPassword, newPassword);
       return res.send(response);
     } catch (error) {
       throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);

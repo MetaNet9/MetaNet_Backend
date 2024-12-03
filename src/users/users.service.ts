@@ -100,4 +100,11 @@ export class UsersService {
   async findByResetToken(token: string): Promise<User | undefined> {
     return this.usersRepository.findOne({ where: { resetToken: token } });
   }
+
+  // async findOne(conditions: Partial<User>): Promise<User | undefined> {
+  //   // find by user id
+  //   if (conditions.id) {
+  //     return this.usersRepository.findOne({ where: { id: conditions.id } });
+  //   }
+  // }
 }
