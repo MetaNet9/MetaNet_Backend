@@ -29,9 +29,17 @@ export class SellerController {
     return this.sellerService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('myaccount')
+  async getMySellerAccount(@Req() req): Promise<Seller> {
+    const userId = req.user.userId;
+    console.log('userId', userId);
+    return this.sellerService.getMySellerAccount(userId);
+  }
+
   // Get seller by ID
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<Seller> {
+  async findOneById(@Param('id') id: number): Promise<Seller> {
     return this.sellerService.findOne(id);
   }
 
@@ -48,10 +56,11 @@ export class SellerController {
   }
 
   // Delete seller by ID
-  @Delete(':id')
-  async remove(@Param('id') id: number): Promise<void> {
-    return this.sellerService.remove(id);
-  }
+  // @Delete(':id')
+  // async remove(@Param('id') id: number): Promise<void> {
+  //   return this.sellerService.remove(id);
+  // }
+
 
   // Get seller's bank details
   // @Get(':id/bank-details')

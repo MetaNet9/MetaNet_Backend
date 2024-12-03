@@ -6,6 +6,7 @@ import { Payment } from './entities/payment.entity';
 import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
 import { StripeService } from 'src/stripe/stripe.service';
 import { GetTransactionsDto } from './dto/transactions.dto';
+import { Seller } from 'src/seller/entities/seller.entity';
 
 @Injectable()
 export class PaymentService {
@@ -15,6 +16,8 @@ export class PaymentService {
     @InjectRepository(Vebxrmodel)
     private modelRepository: Repository<Vebxrmodel>,
     private stripeService: StripeService,
+    @InjectRepository(Seller)
+    private sellerRepository: Repository<Seller>,
   ) {}
 
   async purchaseItems(userId: number, modelIds: number[], paymentMethodId: string) {
@@ -56,6 +59,18 @@ export class PaymentService {
       purchases.push(await this.paymentRepository.save(payment));
     }
 
+    // increse seller balance
+    for (const modelId of modelIds) {
+      const model = await this.modelRepository.findOne({ where: { id: modelId }, relations: ['modelOwner'] });
+
+      // find seller and update balance
+      const seller = await this.sellerRepository.findOne({ where: { id: model.modelOwner.id } });
+      seller.accountBalance = seller.accountBalance + model.price * 0.8;
+
+      // console.log('model.modelOwner.accountBalance', model.modelOwner.accountBalance);
+      await this.modelRepository.save(model);
+    }
+
     return purchases;
   }
 
@@ -74,6 +89,17 @@ export class PaymentService {
     if (!purchase) {
       throw new Error('Purchase not found or user does not own this item.');
     }
+
+    // check already reviewved or not
+    if (purchase.reviewMessage || purchase.reviewStars) {
+      throw new Error('You have already reviewed this item.');
+    }
+
+    // update total review value in the vebxrmodel table
+    const model = await this.modelRepository.findOne({ where: { id: modelId } });
+    model.review = (model.review * model.totalReviews + reviewStars) / (model.totalReviews + 1);
+    model.totalReviews = model.totalReviews + 1;
+    await this.modelRepository.save(model);
 
     purchase.reviewMessage = reviewMessage;
     purchase.reviewStars = reviewStars;

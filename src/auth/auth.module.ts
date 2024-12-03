@@ -8,6 +8,8 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { UsersModule } from '../users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/users/user.entity';
 
 @Module({
   imports: [
@@ -17,6 +19,7 @@ import { UsersModule } from '../users/users.module';
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '60m' },
     }),
+    TypeOrmModule.forFeature([User]),
     
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],

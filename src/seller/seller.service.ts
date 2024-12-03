@@ -75,4 +75,9 @@ export class SellerService {
     const seller = await this.findOne(id);
     await this.sellerRepository.remove(seller);
   }
+
+  async getMySellerAccount(userId: number): Promise<Seller> {
+    const seller = await this.sellerRepository.findOne({ where: { user: { id: userId } } });
+    return seller;
+  }
 }

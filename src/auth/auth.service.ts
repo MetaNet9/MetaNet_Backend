@@ -4,15 +4,19 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserRole } from '../users/user.entity';
+import { User, UserRole } from '../users/user.entity';
 import * as nodemailer from 'nodemailer';
 import * as crypto from 'crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -221,4 +225,24 @@ export class AuthService {
 
     return { message: 'Password reset successfully' };
   }
+
+  // authService.changePassword(req.user.userId, oldPassword, newPassword)
+  async changePassword(userId: number, oldPassword: string, newPassword: string) {
+    const user = await  this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (!await bcrypt.compare(oldPassword, user.password)) {
+      throw new UnauthorizedException('Old password is incorrect');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+
+    await this.usersService.update(userId, user);
+
+    return { message: 'Password changed successfully' };
+  }
+
 }
