@@ -66,5 +66,14 @@ export class UserLikesService {
 
     return 'Model unliked successfully.';
   }
+
+  // getMyLikedModels
+  async getMyLikedModels(userId: number) {
+    
+    return this.userLikesRepository.find({
+      where: { user: { id: userId } },
+      relations: ['model'],
+    });
+  }
   
 }

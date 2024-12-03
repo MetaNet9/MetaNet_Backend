@@ -1,4 +1,4 @@
-import { Controller, Post, Delete, Param, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Delete, Param, ParseIntPipe, UseGuards, Req, Get } from '@nestjs/common';
 import { UserLikesService } from './userlikes.service'; 
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { HttpStatus } from '@nestjs/common';
@@ -27,5 +27,12 @@ export class UserLikesController {
     const userId = req.user.userId;
     const response = await this.userLikesService.unlikeModel(userId, modelId);
     return { status: HttpStatus.OK, message: response };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('mylikemodels')
+  async getMyLikedModels(@Req() req) {
+    const userId = req.user.userId;
+    return this.userLikesService.getMyLikedModels(userId);
   }
 }
