@@ -75,6 +75,17 @@ export class PaymentService {
       throw new Error('Purchase not found or user does not own this item.');
     }
 
+    // check already reviewved or not
+    if (purchase.reviewMessage || purchase.reviewStars) {
+      throw new Error('You have already reviewed this item.');
+    }
+
+    // update total review value in the vebxrmodel table
+    const model = await this.modelRepository.findOne({ where: { id: modelId } });
+    model.review = (model.review * model.totalReviews + reviewStars) / (model.totalReviews + 1);
+    model.totalReviews = model.totalReviews + 1;
+    await this.modelRepository.save(model);
+
     purchase.reviewMessage = reviewMessage;
     purchase.reviewStars = reviewStars;
 

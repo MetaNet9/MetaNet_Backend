@@ -59,6 +59,9 @@ export class Vebxrmodel {
   downloads: number;
 
   @Column({ default: 0 })
+  totalReviews: number;
+
+  @Column({ default: 0 })
   likesCount: number;
 
   @ManyToOne(() => Seller, (seller) => seller.models, { nullable: false })
