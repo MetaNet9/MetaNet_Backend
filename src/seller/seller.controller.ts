@@ -39,7 +39,7 @@ export class SellerController {
 
   // Get seller by ID
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<Seller> {
+  async findOneById(@Param('id') id: number): Promise<Seller> {
     return this.sellerService.findOne(id);
   }
 
