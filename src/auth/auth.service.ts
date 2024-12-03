@@ -222,7 +222,7 @@ export class AuthService {
                                         
                                                 <!-- CTA Button -->
                                                 <div class="cta">
-                                                    <a href="${process.env.APP_URL}/auth/verify-email?token=${verificationToken}">Verify Your Account</a>
+                                                    <a href="${process.env.FRONTEND_URL}/email-varification?token=${verificationToken}">Verify Your Account</a>
                                                 </div>
                                         
                                                 <!-- Divider -->
