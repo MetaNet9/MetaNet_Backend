@@ -95,7 +95,11 @@ export class SellerService {
   }
 
   // Get seller model details
-  // Get seller model details
+  async getMyModels(userId: number) {
+    const seller = await this.sellerRepository.findOne({ where: { user: { id: userId } }, relations: ['vebxrmodels'] });
+    return seller.vebxrmodels;
+  }
+
   async getSellerModelDetails(userId: number) {
     // Find the seller by user ID
     const seller = await this.sellerRepository.findOne({ 
@@ -107,7 +111,7 @@ export class SellerService {
       throw new NotFoundException('Seller not found');
     }
   
-    console.log('seller', seller);
+    // console.log('seller', seller);
   
     // Calculate the total models
     const totalModels = seller.vebxrmodels.length;
@@ -144,9 +148,16 @@ export class SellerService {
 
     // console.log('dailyEarnings', dailyEarnings);
     // Format the daily earnings for easier readability
+    const formattedDailyEarningsDate = dailyEarnings.map((record) => ({
+      date: record.date,
+      earnings: parseFloat(record.dailyearnings),
+    }));
+
+    //make it with day name
     const formattedDailyEarnings = dailyEarnings.map((record) => ({
       date: record.date,
       earnings: parseFloat(record.dailyearnings),
+      day: new Date(record.date).toLocaleDateString('en-US', { weekday: 'long' }),
     }));
   
     // Calculate earnings for each model

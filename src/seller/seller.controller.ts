@@ -19,7 +19,7 @@ export class SellerController {
   @Post()
   async create(@Body() createSellerDto: CreateSellerDto, @Req() req,): Promise<Seller> {
     const userId = req.user.userId;
-    console.log('userId', userId);
+    // console.log('userId', userId);
     return this.sellerService.create(createSellerDto, userId);
   }
 
@@ -29,21 +29,29 @@ export class SellerController {
     return this.sellerService.findAll();
   }
 
+  @Roles(UserRole.SELLER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('myaccount')
   async getMySellerAccount(@Req() req): Promise<Seller> {
     const userId = req.user.userId;
-    console.log('userId', userId);
+    // console.log('userId', userId);
     return this.sellerService.getMySellerAccount(userId);
   }
 
-  // getSellerModelDetails
   @Roles(UserRole.SELLER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('modelsDashboard')
   async getSellerModelDetails(@Req() req) {
     const userId = req.user.userId;
     return this.sellerService.getSellerModelDetails(userId);
+  }
+
+  @Roles(UserRole.SELLER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('mymodels')
+  async getMyModels(@Req() req) {
+    const userId = req.user.userId;
+    return this.sellerService.getMyModels(userId);
   }
 
   // Update seller details
