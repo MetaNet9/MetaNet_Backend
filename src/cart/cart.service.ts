@@ -57,11 +57,11 @@ export class CartService {
 
     return cartItems.map((item) => ({
       modelId: item.model.id,
-      titile: item.model.title,
+      title: item.model.title,
       price: item.model.price,
       userName: item.user.userName,
-      modelUrl: item.model.modelUrl,
-      description: item.model.description,
+      imageUrl: item.model.image1Url,
+      // description: item.model.description,
     }));
   }
 
