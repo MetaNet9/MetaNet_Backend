@@ -24,9 +24,11 @@ export class PaymentService {
     const stripe = this.stripeService.getClient();
     const purchases = [];
     let totalAmount = 0;
+    const buying_models = [];
 
     for (const modelId of modelIds) {
       const model = await this.modelRepository.findOne({ where: { id: modelId } });
+      buying_models.push(model);
 
       if (!model) {
         throw new Error(`Model with ID ${modelId} not found.`);
@@ -48,11 +50,11 @@ export class PaymentService {
     // }
 
     // Record each purchase
-    for (const modelId of modelIds) {
+    for (const model of buying_models) {
       const payment = this.paymentRepository.create({
         user: { id: userId },
-        model: { id: modelId },
-        amount: totalAmount / 100, // Convert back to dollars
+        model: { id: model.id },
+        amount: model.price,
         status: 'pending',
       });
 
@@ -72,7 +74,8 @@ export class PaymentService {
       await this.modelRepository.save(model);
     }
 
-    return purchases;
+    // return totalAmount and purchases or null;
+    return totalAmount;
   }
 
   async getPurchasedItems(userId: number) {
