@@ -64,7 +64,7 @@ export class Vebxrmodel {
   @Column({ default: 0 })
   likesCount: number;
 
-  @ManyToOne(() => Seller, (seller) => seller.models, { nullable: false })
+  @ManyToOne(() => Seller, (seller) => seller.vebxrmodels, { nullable: false })
   @JoinColumn({ name: 'model_owner_id' })
   modelOwner: Seller;
 

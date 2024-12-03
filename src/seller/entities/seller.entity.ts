@@ -11,6 +11,7 @@ import {
 import { User } from 'src/users/user.entity';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { ModelEntity } from 'src/model/entities/model.entity';
+import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
 
 @Entity('seller')
 export class Seller {
@@ -69,9 +70,15 @@ export class Seller {
   @Column({ type: 'float', default: 0 })
   accountBalance: number;
 
+  @Column({ type: 'float', default: 0 })
+  totalEarnings: number;
+
   @OneToMany(() => Transaction, (transaction) => transaction.seller)
   transactions: Transaction[];
 
   @OneToMany(() => ModelEntity, (model) => model.seller)
   models: ModelEntity[];
+
+  @OneToMany(() => Vebxrmodel, (model) => model.modelOwner)
+  vebxrmodels: Vebxrmodel[];
 }

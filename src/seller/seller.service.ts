@@ -6,6 +6,10 @@ import { Seller } from './entities/seller.entity';
 import { User, UserRole } from 'src/users/user.entity';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { UpdateSellerDto } from './dto/update-seller.dto';
+import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
+import { Payment } from 'src/payment/entities/payment.entity';
+import { ModelEntity } from 'src/model/entities/model.entity';
+import { ReviewRequest } from 'src/review_request/entities/review_request.entity';
 
 @Injectable()
 export class SellerService {
@@ -15,6 +19,15 @@ export class SellerService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>, // Inject User repository
+
+    @InjectRepository(Vebxrmodel)
+    private readonly modelRepository: Repository<Vebxrmodel>, // Inject Model repository
+
+    @InjectRepository(Payment)
+    private readonly paymentRepository: Repository<Payment>, // Inject Payment repository
+
+    @InjectRepository(ReviewRequest)
+    private readonly reviewRequestRepository: Repository<ReviewRequest>, // Inject ReviewRequest repository
   ) {}
 
   // Create a new seller
@@ -80,4 +93,88 @@ export class SellerService {
     const seller = await this.sellerRepository.findOne({ where: { user: { id: userId } } });
     return seller;
   }
+
+  // Get seller model details
+  // Get seller model details
+  async getSellerModelDetails(userId: number) {
+    // Find the seller by user ID
+    const seller = await this.sellerRepository.findOne({ 
+      where: { user: { id: userId } },
+      relations: ['vebxrmodels'],
+    });
+  
+    if (!seller) {
+      throw new NotFoundException('Seller not found');
+    }
+  
+    console.log('seller', seller);
+  
+    // Calculate the total models
+    const totalModels = seller.vebxrmodels.length;
+  
+    // Fetch all models of the seller to calculate additional metrics
+    const sellerModels = await this.modelRepository.find({ where: { modelOwner: { id: seller.id } } });
+  
+    // Calculate the total likes
+    const totalLikes = sellerModels.reduce((sum, model) => sum + model.likesCount, 0);
+  
+    // Calculate the total earnings from payments
+    const totalEarnings = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .leftJoin('payment.model', 'model')
+      .where('model.modelOwner = :sellerId', { sellerId: seller.id })
+      .select('SUM(payment.amount)', 'totalEarnings')
+      .getRawOne()
+      .then((result) => parseFloat(result.totalEarnings) || 0);
+  
+    // Calculate the total rejected models
+    const totalRejected = await this.reviewRequestRepository.count({ 
+      where: { modelOwner: { id: seller.id }, rejected: true },
+    });
+  
+    const dailyEarnings = await this.paymentRepository
+    .createQueryBuilder('payment')
+    .leftJoin('payment.model', 'model')
+    .where('model.modelOwner = :sellerId', { sellerId: seller.id })
+    .andWhere('payment.purchasedAt >= :sevenDaysAgo', { sevenDaysAgo: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) })
+    .select(`DATE(payment.purchasedAt) AS date, SUM(payment.amount) AS dailyEarnings`)
+    .groupBy('DATE(payment.purchasedAt)')
+    .orderBy('DATE(payment.purchasedAt)', 'ASC')
+    .getRawMany();
+
+    // console.log('dailyEarnings', dailyEarnings);
+    // Format the daily earnings for easier readability
+    const formattedDailyEarnings = dailyEarnings.map((record) => ({
+      date: record.date,
+      earnings: parseFloat(record.dailyearnings),
+    }));
+  
+    // Calculate earnings for each model
+    const modelEarningsAll = await Promise.all(
+      sellerModels.map(async (model) => {
+        const earnings = await this.paymentRepository
+          .createQueryBuilder('payment')
+          .where('payment.model = :modelId', { modelId: model.id })
+          .select('SUM(payment.amount)', 'modelEarnings')
+          .getRawOne()
+          .then((result) => parseFloat(result.modelEarnings) || 0);
+  
+        return { modelId: model.id, modelName: model.title, earnings };
+      }),
+    );
+
+    // remove models with zero earnings
+    const modelEarnings = modelEarningsAll.filter((model) => model.earnings > 0);
+  
+    return {
+      totalModels,
+      totalLikes,
+      totalEarnings,
+      dailyEarnings : formattedDailyEarnings,
+      totalRejected,
+      modelEarnings,
+    };
+  }
+  
+
 }

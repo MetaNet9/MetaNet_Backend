@@ -74,4 +74,43 @@ export class TransactionsService {
 
     return this.transactionRepository.save(transaction);
   }
+
+  // Get sellers transactions
+  async getWithdrawalDetails(userId: number) {
+    // Fetch seller details (balance, etc.)
+
+
+    const seller = await this.sellerRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+
+    if (!seller) {
+      throw new NotFoundException('Seller account not found');
+    }
+
+    // Fetch pending withdrawals (transactions with PENDING status)
+    const pendingWithdrawals = await this.transactionRepository.find({
+      where: { seller: { id: seller.id }, status: TransactionStatus.PENDING },
+    });
+
+    // Calculate pending withdrawal amount
+    const pendingAmount = pendingWithdrawals.reduce((total, transaction) => total + transaction.amount, 0);
+
+    // Fetch total withdrawals (transactions with COMPLETED status)
+    const completedWithdrawals = await this.transactionRepository.find({
+      where: { seller: { id: seller.id }},
+    });
+
+    // Calculate total withdrawal amount
+    const totalWithdrawals = completedWithdrawals.reduce((total, transaction) => total + transaction.amount, 0);
+
+    return {
+      balance: seller.accountBalance,
+      pendingWithdrawals: pendingAmount,
+      totalWithdrawals: totalWithdrawals,
+      pastWithdrawals: completedWithdrawals,
+    };
+  }
+
 }

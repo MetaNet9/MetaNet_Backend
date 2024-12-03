@@ -66,6 +66,7 @@ export class PaymentService {
       // find seller and update balance
       const seller = await this.sellerRepository.findOne({ where: { id: model.modelOwner.id } });
       seller.accountBalance = seller.accountBalance + model.price * 0.8;
+      seller.totalEarnings = seller.totalEarnings + model.price * 0.8;
 
       // console.log('model.modelOwner.accountBalance', model.modelOwner.accountBalance);
       await this.modelRepository.save(model);

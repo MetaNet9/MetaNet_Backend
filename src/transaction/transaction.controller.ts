@@ -54,6 +54,13 @@ export class TransactionsController {
     return this.transactionsService.getAllTransactions();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('withdrawal-details')
+  async getWithdrawalDetails(@Req() req) {
+    const userId = req.user.userId;
+    return this.transactionsService.getWithdrawalDetails(userId);
+  }
+
   // Update transaction status
   @Patch('update')
   async updateTransactionStatus(

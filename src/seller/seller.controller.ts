@@ -37,10 +37,13 @@ export class SellerController {
     return this.sellerService.getMySellerAccount(userId);
   }
 
-  // Get seller by ID
-  @Get(':id')
-  async findOneById(@Param('id') id: number): Promise<Seller> {
-    return this.sellerService.findOne(id);
+  // getSellerModelDetails
+  @Roles(UserRole.SELLER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('modelsDashboard')
+  async getSellerModelDetails(@Req() req) {
+    const userId = req.user.userId;
+    return this.sellerService.getSellerModelDetails(userId);
   }
 
   // Update seller details
@@ -53,6 +56,13 @@ export class SellerController {
   ): Promise<Seller> {
     const userId = req.user.userId;
     return this.sellerService.update(updateSellerDto, userId);
+  }
+
+  
+  // Get seller by ID
+  @Get(':id')
+  async findOneById(@Param('id') id: number): Promise<Seller> {
+    return this.sellerService.findOne(id);
   }
 
   // Delete seller by ID

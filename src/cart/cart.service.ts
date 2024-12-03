@@ -5,6 +5,7 @@ import { Cart } from './entities/cart.entity';
 import { User } from 'src/users/user.entity';
 import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
 import { GetCartDto } from './dto/get-cart.dto'; // Adjust path if necessary
+import { Mode } from 'fs';
 
 @Injectable()
 export class CartService {
@@ -30,8 +31,10 @@ export class CartService {
     }
 
     const existingCartItem = await this.cartRepository.findOne({
-      where: { user, model },
+      where: {  user: { id: userId }, model: { id: modelId } },
     });
+
+    console.log('existingCartItem', existingCartItem);
 
     if (existingCartItem) {
       throw new BadRequestException('This item is already in your cart');
@@ -54,10 +57,11 @@ export class CartService {
 
     return cartItems.map((item) => ({
       modelId: item.model.id,
+      title: item.model.title,
       price: item.model.price,
       userName: item.user.userName,
-      modelUrl: item.model.modelUrl,
-      description: item.model.description,
+      imageUrl: item.model.image1Url,
+      // description: item.model.description,
     }));
   }
 

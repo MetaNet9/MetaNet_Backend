@@ -1,18 +1,10 @@
 import { IsNumber, IsString } from 'class-validator';
 
 export class GetCartDto {
-  @IsNumber()
+
   modelId: number;
-
-  @IsNumber()
+  title: string;
   price: number;
-
-  @IsString()
   userName: string;
-
-  @IsString()
-  modelUrl: string;
-
-  @IsString()
-  description: string;
+  imageUrl: string;
 }
