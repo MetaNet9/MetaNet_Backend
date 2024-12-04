@@ -7,9 +7,10 @@ import { Payment } from './entities/payment.entity';
 import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
 import { StripeService } from 'src/stripe/stripe.service';
 import { Seller } from 'src/seller/entities/seller.entity';
+import { Cart } from 'src/cart/entities/cart.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Payment, Vebxrmodel, Seller])], // Register the entities
+  imports: [TypeOrmModule.forFeature([Payment, Vebxrmodel, Seller, Cart])], // Register the entities
   controllers: [PaymentController],
   providers: [PaymentService, StripeService],
 })

@@ -7,6 +7,7 @@ import { Vebxrmodel } from 'src/vebxrmodel/entities/vebxrmodel.entity';
 import { StripeService } from 'src/stripe/stripe.service';
 import { GetTransactionsDto } from './dto/transactions.dto';
 import { Seller } from 'src/seller/entities/seller.entity';
+import { Cart } from 'src/cart/entities/cart.entity';
 
 @Injectable()
 export class PaymentService {
@@ -18,6 +19,8 @@ export class PaymentService {
     private stripeService: StripeService,
     @InjectRepository(Seller)
     private sellerRepository: Repository<Seller>,
+    @InjectRepository(Cart)
+    private cartRepository: Repository<Cart>,
   ) {}
 
   async purchaseItems(userId: number, modelIds: number[], paymentMethodId: string) {
@@ -29,6 +32,15 @@ export class PaymentService {
     for (const modelId of modelIds) {
       const model = await this.modelRepository.findOne({ where: { id: modelId } });
       buying_models.push(model);
+
+      // remove from cart
+      const existingCartItem = await this.cartRepository.findOne({
+        where: {  user: { id: userId }, model: { id: modelId } },
+      });
+
+      if (existingCartItem) {
+        await this.cartRepository.remove(existingCartItem);
+      }
 
       if (!model) {
         throw new Error(`Model with ID ${modelId} not found.`);

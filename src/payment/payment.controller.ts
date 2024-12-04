@@ -40,8 +40,8 @@ export class PaymentController {
           },
         ],
         mode: 'payment',
-        success_url: 'http://localhost:3000/success', // Replace with your success URL
-        cancel_url: 'http://localhost:3000/cancel', // Replace with your cancel URL
+        success_url: 'http://localhost:4200/ordersuccessful', // Replace with your success URL
+        cancel_url: 'http://localhost:4200/orderfail', // Replace with your cancel URL
       });
 
       // console.log('Checkout session created:', session.id);
